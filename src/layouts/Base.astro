@@ -15,8 +15,18 @@ const fullTitle = title ? `${title}｜${siteName}` : siteName;
 const indexable = import.meta.env.PUBLIC_INDEXABLE === 'true';
 const home = lang === 'en' ? '/en/' : '/';
 const nav = lang === 'en'
-  ? [{ href: '/en/works/', label: 'Works' }]
-  : [{ href: '/works/', label: '作品' }];
+  ? [
+      { href: '/en/works/', label: 'Works' },
+      { href: '/en/awards/', label: 'Awards' },
+      { href: '/en/members/', label: 'Members' },
+      { href: '/en/contact/', label: 'Contact' },
+    ]
+  : [
+      { href: '/works/', label: '作品' },
+      { href: '/awards/', label: '獲獎' },
+      { href: '/members/', label: '成員' },
+      { href: '/contact/', label: '聯繫' },
+    ];
 const alt = lang === 'en'
   ? { href: altHref ?? '/', label: '中文' }
   : { href: altHref ?? '/en/', label: 'EN' };

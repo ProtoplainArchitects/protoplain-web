@@ -28,6 +28,7 @@ nav a.lang {
 .hero h1 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.35; letter-spacing: 0.02em; margin-bottom: var(--pp-space-md); }
 
 .page-title { margin-bottom: var(--pp-space-lg); }
+.lead { max-width: 680px; color: var(--pp-ink-sub); margin-bottom: var(--pp-space-xl); }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--pp-space-md); }
 .section-head a { font-size: var(--pp-fs-caption); }
 
@@ -75,6 +76,7 @@ nav a.lang {
 .back { margin-top: var(--pp-space-xl); font-size: var(--pp-fs-caption); }
 
 @media (max-width: 640px) {
-  .site-header { margin-bottom: var(--pp-space-lg); }
+  .site-header { margin-bottom: var(--pp-space-lg); align-items: flex-start; }
+  nav { flex-wrap: wrap; justify-content: flex-end; gap: var(--pp-space-xs) var(--pp-space-sm); }
   .hero { padding: var(--pp-space-md) 0 var(--pp-space-xl); }
 }
