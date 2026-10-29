@@ -65,6 +65,15 @@ docs/                       slug 對照表、內容待處理清單
 - protoplain.com 的 DNS 同時承載 Google Workspace 郵件（MX、SPF、DKIM、DMARC）。動 DNS 前先完整匯出現有紀錄，任何一筆郵件紀錄都不能刪。
 - 金鑰（Notion、R2、Cloudflare）放在 Cloudflare 環境變數，不寫進 repo，也不放 `.env` 進版控。
 
+## 可攜性（保持隨時能換託管平台）
+
+託管目前是 Cloudflare Pages，但網站必須維持「`dist/` 丟到任何靜態主機都能跑」。
+
+- 純靜態輸出。不安裝任何託管平台的 adapter（`@astrojs/cloudflare` 等），不寫 Pages Functions、Workers 或其他伺服器端程式。真的需要表單或後端功能，先在 PR 提出替代方案討論。
+- 轉址寫在 `public/_redirects`，自訂標頭寫在 `public/_headers`。這兩種格式 Cloudflare 與 Netlify 通用。
+- 影片與大型檔案不進 repo，網址一律用本所網域（例如 `media.protoplain.com`）或 YouTube／Vimeo 嵌入，不直接寫儲存服務的原始網址。
+- 建置設定只依賴三項：建置指令 `npm run build`、輸出資料夾 `dist`、Node 版本（`.nvmrc`）。環境變數只有 `PUBLIC_INDEXABLE`。新增環境變數要同步寫進本節。
+
 ## 給 Claude Code 的工作守則
 
 - 改內容前先讀該作品的 `index.md` 和 `docs/content-review.md`，確認它有沒有待處理事項。
