@@ -1,0 +1,353 @@
+---
+// 首頁主視覺 方向四｜構築拆解：竹泊線框軸測圖，可旋轉、可依力的路徑拆成六層
+import { workUrl, type Work } from '../lib/works';
+
+interface Props { work: Work }
+const { work } = Astro.props;
+
+// lv：拆解時往上抬的層數；color：pp-tokens 變數名（畫面上唯一的強調色給鋼管外圈）
+const LAYERS = [
+  { id: 'bamboo', no: '01', zh: '孟宗竹交叉編織', en: 'Woven moso bamboo', spec: 'Ø8 cm 直立交叉', lv: 5, color: '--pp-ink', w: 2 },
+  { id: 'ring', no: '02', zh: '鋼管外圈', en: 'Steel tube ring', spec: '圍塑弧形外緣', lv: 4, color: '--pp-accent', w: 4.5 },
+  { id: 'beam', no: '03', zh: '兩側鋼樑', en: 'Edge beams', spec: '承接屋面兩端', lv: 3, color: '--pp-ink', w: 3.5 },
+  { id: 'col', no: '04', zh: '鋼柱', en: 'Steel columns', spec: '每側三支', lv: 2, color: '--pp-ink', w: 3.5 },
+  { id: 'foot', no: '05', zh: '鋼梁基礎', en: 'Steel beam footing', spec: '新設', lv: 1, color: '--pp-ink-sub', w: 3 },
+  { id: 'deck', no: '06', zh: '既有平台', en: 'Existing platform', spec: '保留再利用', lv: 0, color: '--pp-line-strong', w: 1.5 },
+];
+---
+<section class="tect" aria-label="構築拆解：竹泊">
+  <div class="tect-stage">
+    <canvas
+      class="tect-canvas"
+      width="1920"
+      height="1568"
+      role="img"
+      aria-label="竹泊構造線框軸測圖，拖曳可旋轉，可拆解成六層構件"
+    ></canvas>
+    <span class="pp-data tect-hint">拖曳旋轉 · 點選構件清單看單一構件</span>
+  </div>
+  <div class="tect-panel">
+    <span class="pp-data tect-tag">NATURE ELEMENT · {work.data.year}</span>
+    <div>
+      <h1 class="tect-title">{work.data.title}</h1>
+      <span class="tect-sub">{work.data.titleEn} · {work.data.location}</span>
+    </div>
+    <p class="tect-desc">兩點支撐、12 米跨距的弧形竹棚。屋面的力沿著竹編與鋼管外圈傳到兩側鋼樑，再分散到每側三支鋼柱與新設鋼梁基礎，最後接回既有平台。</p>
+    <div class="tect-controls">
+      <button type="button" class="pp-btn tect-toggle" aria-pressed="false">拆解構造</button>
+      <div class="tect-range">
+        <label for="tect-explode" class="pp-data">拆解程度 <span class="tect-ev">0</span>%</label>
+        <input id="tect-explode" type="range" min="0" max="100" step="1" value="0" />
+      </div>
+    </div>
+    <div class="tect-list">
+      <span class="pp-data tect-list-head">力的路徑 LOAD PATH</span>
+      {LAYERS.map((l) => (
+        <button
+          type="button"
+          class="tect-layer"
+          data-id={l.id}
+          data-lv={l.lv}
+          data-color={l.color}
+          data-w={l.w}
+          data-no={l.no}
+          data-zh={l.zh}
+        >
+          <span class="pp-data tect-no">{l.no}</span>
+          <span class="tect-zh">{l.zh}</span>
+          <span></span>
+          <span class="tect-en">{l.en} · {l.spec}</span>
+        </button>
+      ))}
+    </div>
+    <span class="tect-note">線框為示意，構件數量與尺寸未依施工圖。</span>
+    <a class="tect-link" href={workUrl(work.id, 'zh')}>看{work.data.title}作品頁</a>
+  </div>
+</section>
+
+<style>
+  .tect {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+    gap: var(--pp-space-lg);
+    padding-bottom: var(--pp-space-xl);
+  }
+  .tect-stage {
+    position: relative;
+    aspect-ratio: 960 / 784;
+    background: var(--pp-bg-card-sub);
+    border-radius: var(--pp-radius-control);
+    overflow: hidden;
+  }
+  .tect-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+    cursor: grab;
+    /* 直向留給頁面捲動，橫向拖曳才旋轉，手機上不會卡住捲動 */
+    touch-action: pan-y;
+  }
+  .tect-canvas:active { cursor: grabbing; }
+  .tect-hint { position: absolute; left: var(--pp-space-md); bottom: var(--pp-space-sm); font-size: 12px; color: var(--pp-ink-sub); pointer-events: none; }
+
+  .tect-panel { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+  .tect-tag { font-size: 11px; letter-spacing: 0.14em; color: var(--pp-ink-sub); }
+  .tect-title { margin: 0 0 4px; }
+  .tect-sub { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .tect-desc { margin: 0; font-size: 14px; line-height: 1.8; color: var(--pp-ink-sub); }
+
+  .tect-controls { display: flex; gap: var(--pp-space-sm); align-items: center; }
+  .tect-toggle { min-height: 44px; font-weight: var(--pp-fw-regular); font-size: 14px; }
+  .tect-toggle:hover { border-color: var(--pp-ink); }
+  .tect-range { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+  .tect-range label { font-size: 11px; color: var(--pp-ink-sub); }
+  .tect-range input { width: 100%; accent-color: var(--pp-ink); }
+
+  .tect-list { display: flex; flex-direction: column; }
+  .tect-list-head { font-size: 11px; letter-spacing: 0.1em; color: var(--pp-ink-sub); padding-bottom: 6px; border-bottom: var(--pp-border-width) solid var(--pp-ink); }
+  .tect-layer {
+    font: inherit; width: 100%; text-align: left; cursor: pointer;
+    display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 4px 10px; align-items: baseline;
+    background: transparent; border: 0; border-bottom: var(--pp-border-width) solid var(--pp-line);
+    padding: 10px 8px; color: var(--pp-ink);
+    transition: background 0.3s, color 0.3s;
+  }
+  .tect-no { font-size: 12px; color: var(--pp-ink-sub); }
+  .tect-zh { font-size: 14px; font-weight: var(--pp-fw-medium); }
+  .tect-en { font-size: 12px; color: var(--pp-ink-sub); }
+  .tect-list[data-hl] .tect-layer { color: var(--pp-ink-hint); }
+  .tect-list[data-hl] .tect-layer.is-on { color: var(--pp-ink); background: var(--pp-bg-card); }
+  .tect-list[data-hl] .tect-layer.is-on .tect-no { color: var(--pp-ink); }
+  .tect-toggle:focus-visible, .tect-layer:focus-visible { outline: 1px solid var(--pp-ink); outline-offset: 2px; }
+
+  .tect-note { font-size: 11px; line-height: 1.6; color: var(--pp-ink-sub); }
+  /* 強調色已給鋼管外圈，這裡的連結用墨色 */
+  .tect-link { font-size: var(--pp-fs-caption); color: var(--pp-ink); text-decoration: underline; text-underline-offset: 3px; }
+  .tect-link:hover { color: var(--pp-ink); }
+
+  @media (max-width: 860px) {
+    .tect { grid-template-columns: minmax(0, 1fr); gap: var(--pp-space-md); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tect-layer { transition: none; }
+  }
+</style>
+
+<script>
+  // 竹泊線框：參數曲面取樣成竹編、外圈、樑柱與平台的折線，以簡單透視投影畫在 canvas
+  type Pt = [number, number, number];
+  type Layer = { id: string; no: string; zh: string; lv: number; color: string; w: number };
+
+  const W = 1920;
+  const H = 1568;
+
+  function S(u: number, v: number): Pt {
+    const hw = 2.6 * (1 - 0.18 * u * u);
+    return [6 * u, 1.0 + 3.4 * (1 - u * u) * (1 - 0.12 * v * v), hw * v];
+  }
+
+  function build(): Record<string, Pt[][]> {
+    const G: Record<string, Pt[][]> = {};
+    const fam = (sg: number) => {
+      const out: Pt[][] = [];
+      const s = 0.55;
+      for (let i = 0; i <= 16; i++) {
+        const c = -1.55 + i * (3.1 / 16);
+        let a = (-1 - c) / (sg * s);
+        let b = (1 - c) / (sg * s);
+        if (a > b) [a, b] = [b, a];
+        a = Math.max(a, -1);
+        b = Math.min(b, 1);
+        if (b - a < 0.05) continue;
+        const pts: Pt[] = [];
+        for (let k = 0; k <= 24; k++) {
+          const v = a + ((b - a) * k) / 24;
+          pts.push(S(c + sg * s * v, v));
+        }
+        out.push(pts);
+      }
+      return out;
+    };
+    const line = (f: (t: number) => Pt, n: number) => {
+      const p: Pt[] = [];
+      for (let k = 0; k <= n; k++) p.push(f(k / n));
+      return p;
+    };
+    G.bamboo = fam(1).concat(fam(-1));
+    G.ring = [
+      line((t) => S(-1 + 2 * t, 1), 40),
+      line((t) => S(-1 + 2 * t, -1), 40),
+      line((t) => S(-1, -1 + 2 * t), 8),
+      line((t) => S(1, -1 + 2 * t), 8),
+    ];
+    G.beam = [];
+    G.col = [];
+    G.foot = [];
+    for (const x of [-6, 6]) {
+      G.beam.push([[x, 0.95, -2.45], [x, 0.95, 2.45]], [[x, 0.85, -2.45], [x, 0.85, 2.45]]);
+      for (const z of [-1.8, 0, 1.8]) G.col.push([[x, 0.15, z], [x, 0.85, z]]);
+      G.foot.push([[x, 0.12, -2.8], [x, 0.12, 2.8]], [[x, 0.02, -2.8], [x, 0.02, 2.8]]);
+    }
+    G.deck = [[[-8, 0, -3.6], [8, 0, -3.6], [8, 0, 3.6], [-8, 0, 3.6], [-8, 0, -3.6]]];
+    for (let x = -7; x <= 7; x++) G.deck.push([[x, 0, -3.6], [x, 0, 3.6]]);
+    return G;
+  }
+
+  function init(root: HTMLElement) {
+    const cv = root.querySelector<HTMLCanvasElement>('.tect-canvas');
+    const ctx = cv?.getContext('2d');
+    if (!cv || !ctx) return;
+    const list = root.querySelector<HTMLElement>('.tect-list')!;
+    const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('.tect-layer'));
+    const toggle = root.querySelector<HTMLButtonElement>('.tect-toggle')!;
+    const range = root.querySelector<HTMLInputElement>('#tect-explode')!;
+    const evOut = root.querySelector<HTMLElement>('.tect-ev')!;
+
+    // 色彩一律取自 pp-tokens，不在程式裡寫死色碼
+    const css = getComputedStyle(document.documentElement);
+    const token = (n: string) => css.getPropertyValue(n).trim();
+    const dimColor = token('--pp-line');
+    const leaderColor = token('--pp-ink-hint');
+    const inkColor = token('--pp-ink');
+    const fontMono = token('--pp-font-mono');
+    const fontBase = token('--pp-font-base');
+
+    const layers: Layer[] = buttons.map((b) => ({
+      id: b.dataset.id!,
+      no: b.dataset.no!,
+      zh: b.dataset.zh!,
+      lv: Number(b.dataset.lv),
+      color: token(b.dataset.color!),
+      w: Number(b.dataset.w),
+    }));
+    const GEO = build();
+
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let yaw = -0.55;
+    let pitch = 0.42;
+    let e = 0;
+    let eT = 0;
+    let hl: string | null = null;
+    let drag: { x: number; y: number } | null = null;
+    let visible = true;
+    let raf = 0;
+
+    const setExplode = (v: number) => {
+      eT = v / 100;
+      range.value = String(v);
+      evOut.textContent = String(v);
+      const open = v > 50;
+      toggle.textContent = open ? '組合構造' : '拆解構造';
+      toggle.setAttribute('aria-pressed', String(open));
+    };
+    toggle.addEventListener('click', () => setExplode(toggle.getAttribute('aria-pressed') === 'true' ? 0 : 100));
+    range.addEventListener('input', () => setExplode(Number(range.value)));
+
+    const setHl = (id: string | null) => {
+      hl = id;
+      if (id) list.dataset.hl = id;
+      else delete list.dataset.hl;
+      buttons.forEach((b) => b.classList.toggle('is-on', b.dataset.id === id));
+    };
+    buttons.forEach((b) => {
+      const on = () => setHl(b.dataset.id!);
+      const off = () => setHl(null);
+      b.addEventListener('mouseenter', on);
+      b.addEventListener('mouseleave', off);
+      b.addEventListener('focus', on);
+      b.addEventListener('blur', off);
+      // 觸控裝置沒有 hover，點一下切換
+      b.addEventListener('click', () => setHl(hl === b.dataset.id ? null : b.dataset.id!));
+    });
+
+    cv.addEventListener('pointerdown', (ev) => {
+      drag = { x: ev.clientX, y: ev.clientY };
+      cv.setPointerCapture(ev.pointerId);
+    });
+    cv.addEventListener('pointermove', (ev) => {
+      if (!drag) return;
+      const dx = ev.clientX - drag.x;
+      const dy = ev.clientY - drag.y;
+      drag = { x: ev.clientX, y: ev.clientY };
+      yaw += dx * 0.007;
+      pitch = Math.max(0.06, Math.min(1.25, pitch + dy * 0.004));
+    });
+    const up = () => { drag = null; };
+    cv.addEventListener('pointerup', up);
+    cv.addEventListener('pointercancel', up);
+
+    const draw = () => {
+      e += (eT - e) * (reduce ? 1 : 0.07);
+      if (!drag && !reduce) yaw += 0.0025;
+      const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      const D = 30;
+      const cy = 2.2 + e * 3.6;
+      const K = 2820 / (1 + e * 0.42);
+      const P = (p: Pt, oy: number): [number, number] => {
+        const x = p[0], y = p[1] + oy - cy, z = p[2];
+        const x1 = x * cyaw - z * syaw;
+        const z1 = x * syaw + z * cyaw;
+        const y1 = y * cp - z1 * sp;
+        const z2 = y * sp + z1 * cp;
+        const k = K / (D - z2);
+        return [W / 2 + x1 * k, H * 0.52 - y1 * k];
+      };
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      const anchors: { L: Layer; x: number; y: number; dim: boolean }[] = [];
+      for (const L of layers) {
+        const oy = e * 1.55 * L.lv;
+        const dim = !!hl && hl !== L.id;
+        ctx.strokeStyle = dim ? dimColor : L.color;
+        ctx.lineWidth = L.w;
+        let ax = -1e9, ay = 0;
+        for (const pl of GEO[L.id]) {
+          ctx.beginPath();
+          pl.forEach((pt, i) => {
+            const q = P(pt, oy);
+            if (i === 0) ctx.moveTo(q[0], q[1]);
+            else ctx.lineTo(q[0], q[1]);
+            if (q[0] > ax) { ax = q[0]; ay = q[1]; }
+          });
+          ctx.stroke();
+        }
+        anchors.push({ L, x: ax, y: ay, dim });
+      }
+      // 拆開後在每層右側拉出引線與名稱
+      if (e > 0.04) {
+        ctx.globalAlpha = Math.min(1, (e - 0.04) * 3);
+        for (const a of anchors) {
+          const endX = Math.max(W - 300, a.x + 40);
+          ctx.strokeStyle = leaderColor;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(a.x + 14, a.y);
+          ctx.lineTo(endX, a.y);
+          ctx.stroke();
+          ctx.fillStyle = a.dim ? leaderColor : inkColor;
+          ctx.font = `400 24px ${fontMono}`;
+          ctx.fillText(a.L.no, endX + 12, a.y + 8);
+          ctx.font = `500 26px ${fontBase}`;
+          ctx.fillText(a.L.zh, endX + 58, a.y + 9);
+        }
+        ctx.globalAlpha = 1;
+      }
+    };
+
+    const loop = () => {
+      draw();
+      raf = visible ? requestAnimationFrame(loop) : 0;
+    };
+    // 捲出畫面就停止重繪，省電
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(loop);
+    }).observe(cv);
+    raf = requestAnimationFrame(loop);
+  }
+
+  document.querySelectorAll<HTMLElement>('.tect').forEach(init);
+</script>

@@ -1,16 +1,17 @@
 ---
 import Base from '../layouts/Base.astro';
+import { getEntry } from 'astro:content';
 import WorkGrid from '../components/WorkGrid.astro';
+import HeroTectonic from '../components/HeroTectonic.astro';
 import { getWorks } from '../lib/works';
 
 const works = (await getWorks()).filter((w) => w.data.kind === 'work').slice(0, 6);
+const mooring = await getEntry('works', 'bamboo-mooring');
+if (!mooring) throw new Error('首頁主視覺需要作品 bamboo-mooring');
 ---
 <Base lang="zh" description="初樸建築師事務所，臺中豐原。竹、木、土自然材料的當代構築。">
-  <!-- 首頁主視覺為暫置版本：方向（原 1–5 樣板）定案後替換 -->
-  <section class="hero">
-    <h1>竹、木、土<br />自然材料的當代構築</h1>
-    <p class="pp-caption">人文構築 ARTIFICIAL element ／ 自然構築 NATURE element</p>
-  </section>
+  <!-- 首頁主視覺試作：方向四｜構築拆解（原樣板 Tectonic） -->
+  <HeroTectonic work={mooring} />
   <section>
     <div class="section-head">
       <h2>近期作品</h2>
