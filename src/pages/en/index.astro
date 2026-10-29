@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorkGrid from '../../components/WorkGrid.astro';
+import { getWorks, getEnglishIds } from '../../lib/works';
+
+const enIds = await getEnglishIds();
+const works = (await getWorks()).filter((w) => w.data.kind === 'work' && enIds.has(w.id)).slice(0, 6);
+---
+<Base lang="en" altHref="/" description="ProtoPlain Architects, Taichung. Contemporary tectonics of bamboo, timber and earth.">
+  <section class="hero">
+    <h1>Bamboo, timber, earth<br />contemporary tectonics of natural materials</h1>
+    <p class="pp-caption">ARTIFICIAL element / NATURE element</p>
+  </section>
+  <section>
+    <div class="section-head">
+      <h2>Recent works</h2>
+      <a href="/en/works/">All works</a>
+    </div>
+    <WorkGrid works={works} lang="en" enIds={enIds} />
+  </section>
+</Base>

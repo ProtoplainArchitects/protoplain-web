@@ -1,0 +1,62 @@
+---
+import '../styles/pp-tokens.css';
+import '../styles/site.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  lang: 'zh' | 'en';
+  /** 對應另一語言版本的路徑；沒有就連到該語言首頁 */
+  altHref?: string;
+}
+const { title, description, lang, altHref } = Astro.props;
+const siteName = lang === 'en' ? 'ProtoPlain Architects' : '初樸建築師事務所';
+const fullTitle = title ? `${title}｜${siteName}` : siteName;
+const indexable = import.meta.env.PUBLIC_INDEXABLE === 'true';
+const home = lang === 'en' ? '/en/' : '/';
+const nav = lang === 'en'
+  ? [{ href: '/en/works/', label: 'Works' }]
+  : [{ href: '/works/', label: '作品' }];
+const alt = lang === 'en'
+  ? { href: altHref ?? '/', label: '中文' }
+  : { href: altHref ?? '/en/', label: 'EN' };
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang={lang === 'en' ? 'en' : 'zh-Hant-TW'}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    {!indexable && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={new URL(path, Astro.site)} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Sans+TC:wght@400;500&display=swap"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={home}>
+        <span class="brand-zh">初樸建築師事務所</span>
+        <span class="brand-en">ProtoPlain Architects</span>
+      </a>
+      <nav aria-label={lang === 'en' ? 'Main' : '主要導覽'}>
+        {nav.map((n) => (
+          <a href={n.href} aria-current={path.startsWith(n.href) ? 'page' : undefined}>{n.label}</a>
+        ))}
+        <a class="lang" href={alt.href} hreflang={lang === 'en' ? 'zh-Hant' : 'en'}>{alt.label}</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <span>© {new Date().getFullYear()} {lang === 'en' ? 'ProtoPlain Architects' : '初樸建築師事務所'}</span>
+      <span>{lang === 'en' ? 'Taichung, Taiwan' : '臺中・豐原'}</span>
+    </footer>
+  </body>
+</html>

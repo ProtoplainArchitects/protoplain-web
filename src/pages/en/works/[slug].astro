@@ -1,0 +1,22 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import WorkDetail from '../../../components/WorkDetail.astro';
+import { getWorks, workUrl } from '../../../lib/works';
+
+export async function getStaticPaths() {
+  const works = await getWorks();
+  const en = await getCollection('worksEn');
+  return en
+    .map((entry) => ({ entry, work: works.find((w) => w.id === entry.id) }))
+    .filter((x) => x.work)
+    .map(({ entry, work }) => ({ params: { slug: entry.id }, props: { entry, work: work! } }));
+}
+const { entry, work } = Astro.props;
+const { Content } = await render(entry);
+---
+<Base lang="en" title={entry.data.title} altHref={workUrl(work.id, 'zh')}>
+  <WorkDetail work={work} lang="en" title={entry.data.title} subtitle={entry.data.subtitle}>
+    <Content />
+  </WorkDetail>
+</Base>

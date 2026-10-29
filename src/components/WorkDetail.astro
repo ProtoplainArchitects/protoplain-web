@@ -1,0 +1,32 @@
+---
+import { Image } from 'astro:assets';
+import { axisLabel, kindLabel, type Lang, type Work } from '../lib/works';
+
+interface Props { work: Work; lang: Lang; title: string; subtitle: string | null }
+const { work, lang, title, subtitle } = Astro.props;
+const d = work.data;
+const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
+---
+<article class="work">
+  <header class="work-head">
+    <p class="pp-caption">
+      {kindLabel[d.kind][lang]}{d.axis && <> ・ {axisLabel[d.axis][lang]}</>}
+    </p>
+    <h1>{title}</h1>
+    {subtitle && <p class="work-sub">{subtitle}</p>}
+    <dl class="work-facts">
+      <div><dt>{t('年份', 'Year')}</dt><dd class="pp-data">{d.year}</dd></div>
+      {lang === 'zh' && d.location && <div><dt>地點</dt><dd>{d.location}</dd></div>}
+    </dl>
+    {d.draft && <p class="draft-flag">draft：{d.review.join('、')}（不會出現在正式網站）</p>}
+  </header>
+  {d.cover && (
+    <figure class="work-cover">
+      <Image src={d.cover} alt={title} widths={[800, 1260]} sizes="(max-width: 960px) 100vw, 960px" format="webp" loading="eager" />
+    </figure>
+  )}
+  <div class="work-body">
+    <slot />
+  </div>
+  <p class="back"><a href={lang === 'en' ? '/en/works/' : '/works/'}>{t('← 回作品列表', '← All works')}</a></p>
+</article>

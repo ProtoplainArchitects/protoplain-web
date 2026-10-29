@@ -1,0 +1,12 @@
+---
+import Base from '../../../layouts/Base.astro';
+import WorkGrid from '../../../components/WorkGrid.astro';
+import { getWorks, getEnglishIds } from '../../../lib/works';
+
+const enIds = await getEnglishIds();
+const works = (await getWorks()).filter((w) => enIds.has(w.id));
+---
+<Base lang="en" title="Works" altHref="/works/">
+  <h1 class="page-title">Works</h1>
+  <WorkGrid works={works} lang="en" enIds={enIds} filter />
+</Base>

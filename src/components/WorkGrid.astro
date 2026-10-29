@@ -1,0 +1,54 @@
+---
+import { Image } from 'astro:assets';
+import { axisLabel, kindLabel, workUrl, type Lang, type Work } from '../lib/works';
+
+interface Props { works: Work[]; lang: Lang; filter?: boolean; enIds?: Set<string> }
+const { works, lang, filter = false, enIds } = Astro.props;
+const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
+---
+{filter && (
+  <div class="filter" role="group" aria-label={t('篩選', 'Filter')}>
+    <button type="button" data-filter="all" aria-pressed="true">{t('全部', 'All')}</button>
+    <button type="button" data-filter="人文構築" aria-pressed="false">{axisLabel['人文構築'][lang]}</button>
+    <button type="button" data-filter="自然構築" aria-pressed="false">{axisLabel['自然構築'][lang]}</button>
+    <button type="button" data-filter="exhibition" aria-pressed="false">{kindLabel.exhibition[lang]}</button>
+  </div>
+)}
+<ul class="grid">
+  {works.map((w) => {
+    const title = lang === 'en' ? (w.data.titleEn ?? w.data.title) : w.data.title;
+    const href = lang === 'en' && enIds && !enIds.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang);
+    return (
+      <li class="tile" data-axis={w.data.axis ?? ''} data-kind={w.data.kind}>
+        <a href={href}>
+          <div class="tile-img">
+            {w.data.cover && (
+              <Image src={w.data.cover} alt="" widths={[480, 800]} sizes="(max-width: 640px) 100vw, 33vw" format="webp" />
+            )}
+          </div>
+          <div class="tile-meta">
+            <span class="tile-title">{title}</span>
+            <span class="pp-data">{w.data.year}</span>
+          </div>
+          {w.data.draft && <span class="draft-flag">draft · {w.data.review.join('、')}</span>}
+        </a>
+      </li>
+    );
+  })}
+</ul>
+{filter && (
+  <script>
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.filter button');
+    const tiles = document.querySelectorAll<HTMLElement>('.grid .tile');
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        const f = b.dataset.filter;
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        tiles.forEach((tile) => {
+          const show = f === 'all' || tile.dataset.axis === f || tile.dataset.kind === f;
+          tile.hidden = !show;
+        });
+      }),
+    );
+  </script>
+)}
