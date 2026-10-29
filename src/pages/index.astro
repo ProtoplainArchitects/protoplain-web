@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import WorkGrid from '../components/WorkGrid.astro';
 import HeroAxes from '../components/HeroAxes.astro';
+import DotField from '../components/DotField.astro';
 import { getWorks } from '../lib/works';
 
 const all = await getWorks();
@@ -11,6 +12,7 @@ const works = all.filter((w) => w.data.kind === 'work').slice(0, 6);
   <!-- 首頁主視覺試作：方向二｜雙軸並置（原樣板 HeroB） -->
   <h1 class="visually-hidden">竹、木、土自然材料的當代構築</h1>
   <HeroAxes works={all} />
+  <DotField />
   <section>
     <div class="section-head">
       <h2>近期作品</h2>
