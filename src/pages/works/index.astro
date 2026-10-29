@@ -1,0 +1,11 @@
+---
+import Base from '../../layouts/Base.astro';
+import WorkGrid from '../../components/WorkGrid.astro';
+import { getWorks } from '../../lib/works';
+
+const works = await getWorks();
+---
+<Base lang="zh" title="作品" altHref="/en/works/">
+  <h1 class="page-title">作品</h1>
+  <WorkGrid works={works} lang="zh" filter />
+</Base>

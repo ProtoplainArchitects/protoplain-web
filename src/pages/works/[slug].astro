@@ -1,0 +1,18 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import WorkDetail from '../../components/WorkDetail.astro';
+import { getWorks, getEnglishIds, workUrl } from '../../lib/works';
+
+export async function getStaticPaths() {
+  const [works, enIds] = await Promise.all([getWorks(), getEnglishIds()]);
+  return works.map((work) => ({ params: { slug: work.id }, props: { work, hasEn: enIds.has(work.id) } }));
+}
+const { work, hasEn } = Astro.props;
+const { Content } = await render(work);
+---
+<Base lang="zh" title={work.data.title} description={work.data.subtitle ?? undefined} altHref={hasEn ? workUrl(work.id, 'en') : '/en/works/'}>
+  <WorkDetail work={work} lang="zh" title={work.data.title} subtitle={work.data.subtitle}>
+    <Content />
+  </WorkDetail>
+</Base>
