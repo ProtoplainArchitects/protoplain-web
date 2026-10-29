@@ -50,5 +50,8 @@ const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
         });
       }),
     );
+    // 首頁兩軸連結帶 ?axis=人文構築 之類的參數，進來時直接套用篩選
+    const initial = new URLSearchParams(location.search).get('axis');
+    if (initial) Array.from(buttons).find((b) => b.dataset.filter === initial)?.click();
   </script>
 )}
