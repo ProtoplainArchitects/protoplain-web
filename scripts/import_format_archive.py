@@ -32,7 +32,7 @@ SLUGS = {
     19: 'radiant-court', 20: 'zhan-house-in-shigang', 21: 'dormitory-in-tanzi',
     22: 'liu-house-in-taichung', 23: 'zhou-house-in-shengang', 24: 'social-housing-in-wuqi',
     25: 'a-nook', 26: 'unflavored', 27: 'she-house-in-xiaogang',
-    28: 'island-bamboo-traces-2025', 29: 'tectonics-of-the-island-2024',
+    28: 'island-bamboo-traces-2025', 29: 'tectonics-of-the-island-2025',
     30: 'tectonics-of-the-island-2023', 31: 'filling-the-void-2021', 32: 'the-miner-2020',
 }
 
