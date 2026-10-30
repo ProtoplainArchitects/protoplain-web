@@ -1,18 +1,47 @@
 ---
+import { Image } from 'astro:assets';
 import { members, affiliates } from '../data/members';
 import type { Lang } from '../lib/works';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const en = lang === 'en';
+const leads = members.filter((m) => m.lead);
+const team = members.filter((m) => !m.lead);
+// 主名依頁面語言，副名用另一語言，兩頁都看得到中英對照
+const names = (m: (typeof members)[number]) => (en ? [m.en, m.zh] : [m.zh, m.en]);
 ---
-<ul class="members">
-  {members.map((m) => (
+<ul class="leaders">
+  {leads.map((m) => (
+    <li class="leader">
+      <div class="photo">
+        <Image src={m.photo} alt={names(m)[0]} widths={[320, 640]} sizes="(max-width: 480px) 120px, 240px" format="webp" loading="eager" />
+      </div>
+      <div class="leader-text">
+        <p class="role">{en ? m.roleEn : m.roleZh}</p>
+        <h2 class="name">{names(m)[0]}<span class="name-alt">{names(m)[1]}</span></h2>
+        <ul class="bio">
+          {(en ? m.bioEn : m.bioZh).map((b) => <li>{b}</li>)}
+        </ul>
+      </div>
+    </li>
+  ))}
+</ul>
+
+<div class="team-head">
+  <h2>{en ? 'Team' : '團隊'}</h2>
+  <span class="pp-data">{String(team.length).padStart(2, '0')}</span>
+</div>
+<ul class="team">
+  {team.map((m) => (
     <li class="member">
-      <span class="member-name">{en ? m.en : m.zh}</span>
-      <span class="member-role">{en ? m.roleEn : m.roleZh}</span>
+      <div class="photo">
+        <Image src={m.photo} alt={names(m)[0]} widths={[320, 640]} sizes="(max-width: 640px) 50vw, (max-width: 960px) 33vw, 280px" format="webp" />
+      </div>
+      <h3 class="name">{names(m)[0]}<span class="name-alt">{names(m)[1]}</span></h3>
+      <p class="role">{en ? m.roleEn : m.roleZh}</p>
       {(en ? m.bioEn : m.bioZh).length > 0 && (
-        <ul class="member-bio">
+        <ul class="bio">
           {(en ? m.bioEn : m.bioZh).map((b) => <li>{b}</li>)}
         </ul>
       )}
@@ -32,19 +61,55 @@ const en = lang === 'en';
 </div>
 
 <style>
-  .members {
+  /* 照片統一 4:5，裁切已在原檔完成；容器再鎖一次比例，避免版面跳動 */
+  .photo { aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .name { font-size: var(--pp-fs-h3); font-weight: var(--pp-fw-medium); margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--pp-space-xs); }
+  .name-alt { font-size: var(--pp-fs-caption); font-weight: var(--pp-fw-regular); color: var(--pp-ink-hint); }
+  .role { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); margin: 0; }
+  .bio { list-style: none; margin: 0; padding: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); line-height: 1.6; }
+
+  /* 主持與所務：白卡片、照片在左 */
+  .leaders {
     list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0;
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 0 var(--pp-space-lg);
-    border-top: var(--pp-border-width) solid var(--pp-ink);
+    display: flex; flex-wrap: wrap; gap: var(--pp-space-md);
   }
-  .member { display: flex; flex-direction: column; gap: 2px; padding: var(--pp-space-md) 0; border-bottom: var(--pp-border-width) solid var(--pp-line); }
-  .member-name { font-weight: var(--pp-fw-medium); }
-  .member-role { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
-  .member-bio { list-style: none; margin: var(--pp-space-xs) 0 0; padding: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); line-height: 1.6; }
+  .leader {
+    flex: 1 1 480px; min-width: 0;
+    display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--pp-space-md); align-items: start;
+    background: var(--pp-bg-card); border: var(--pp-border-width) solid var(--pp-line);
+    border-radius: var(--pp-radius-card); padding: var(--pp-space-md);
+  }
+  .leader-text { display: flex; flex-direction: column; gap: var(--pp-space-xs); }
+  .leader .name { font-size: var(--pp-fs-h2); }
+  .leader .bio { border-top: var(--pp-border-width) solid var(--pp-line); padding-top: var(--pp-space-sm); margin-top: var(--pp-space-xs); }
+
+  /* 團隊：12 人，4／3／2 欄都能整除 */
+  .team-head { display: flex; justify-content: space-between; align-items: baseline; border-top: var(--pp-border-width) solid var(--pp-ink); padding-top: var(--pp-space-sm); margin-bottom: var(--pp-space-md); }
+  .team-head h2 { font-size: var(--pp-fs-h3); margin: 0; }
+  .team-head .pp-data { color: var(--pp-ink-hint); }
+  .team {
+    list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pp-space-lg) var(--pp-space-md);
+  }
+  .member { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .member .photo { margin-bottom: var(--pp-space-xs); }
+  .member .bio { margin-top: var(--pp-space-xs); padding-top: var(--pp-space-xs); border-top: var(--pp-border-width) solid var(--pp-line); }
+
+  @media (max-width: 960px) {
+    .team { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .team { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pp-space-md) var(--pp-space-sm); }
+  }
+  @media (max-width: 480px) {
+    .leader { grid-template-columns: 120px minmax(0, 1fr); gap: var(--pp-space-sm); padding: var(--pp-space-sm); }
+    .leader .name { font-size: var(--pp-fs-h3); }
+  }
 
   .scope { color: var(--pp-ink-sub); letter-spacing: 0.08em; margin-bottom: var(--pp-space-md); }
-  .affiliates { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--pp-space-lg); }
+  .affiliates { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--pp-space-lg); }
   .affiliate { border-top: var(--pp-border-width) solid var(--pp-ink); padding-top: var(--pp-space-md); }
   .affiliate h2 { font-size: var(--pp-fs-h3); }
   .affiliate p { color: var(--pp-ink-sub); }
