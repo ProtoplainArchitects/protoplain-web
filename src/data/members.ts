@@ -1,31 +1,53 @@
 // 成員與關係企業。來源：Format 舊站「Members」中英文頁（擷取日 2026-10-29）
 // 同仁姓名與經歷依 2026-10-29 回覆「已取得本人同意」照舊站列出；新進或異動同仁須另取得同意。
+// 照片取自同一舊站成員頁原圖（擷取日 2026-10-31），統一裁成 4:5、眼線約在 36% 高度，已去除 EXIF／GPS。
 
-export interface Member { zh: string; en: string; roleZh: string; roleEn: string; bioZh: string[]; bioEn: string[] }
+import type { ImageMetadata } from 'astro';
+import yeh from '../assets/members/yeh-yu-hsin.jpg';
+import linJessi from '../assets/members/lin-jessi.jpg';
+import chengHungYi from '../assets/members/cheng-hung-yi.jpg';
+import fan from '../assets/members/fan-yu-ruei.jpg';
+import hsu from '../assets/members/hsu-tzu-hung.jpg';
+import shiu from '../assets/members/shiu-fu-hao.jpg';
+import liao from '../assets/members/liao-zih-ci.jpg';
+import chengYuTung from '../assets/members/cheng-yu-tung.jpg';
+import huang from '../assets/members/huang-cheng-hsien.jpg';
+import linShanShan from '../assets/members/lin-shan-shan.jpg';
+import chen from '../assets/members/chen-chao-ming.jpg';
+import dagun from '../assets/members/dagun.jpg';
+import yuAnnie from '../assets/members/yu-annie.jpg';
+import kang from '../assets/members/kang-hua-qian.jpg';
+
+export interface Member {
+  zh: string; en: string; roleZh: string; roleEn: string; bioZh: string[]; bioEn: string[];
+  photo: ImageMetadata;
+  /** 主持與所務負責人，頁面上以較大版面呈現 */
+  lead?: boolean;
+}
 
 export const members: Member[] = [
   {
-    zh: '葉育鑫', en: 'Yu Hsin, Yeh', roleZh: '主持建築師暨負責人', roleEn: 'Principal Architect',
+    photo: yeh, lead: true, zh: '葉育鑫', en: 'Yu Hsin, Yeh', roleZh: '主持建築師暨負責人', roleEn: 'Principal Architect',
     bioZh: ['台灣開業建築師', '私立逢甲大學建築系講師', '綠建築 LEED 專業認證人員', '亞利桑那州立大學建築碩士', '淡江大學建築系學士'],
     bioEn: ['Registered Architect in Taiwan', 'Lecturer, Department of Architecture, Feng Chia University', 'LEED Accredited Professional (LEED AP)', 'Master of Architecture, Arizona State University', 'Bachelor of Architecture, Tamkang University'],
   },
   {
-    zh: '林潔珊', en: 'Jessi, Lin', roleZh: '執行所長', roleEn: 'Executive Director',
+    photo: linJessi, lead: true, zh: '林潔珊', en: 'Jessi, Lin', roleZh: '執行所長', roleEn: 'Executive Director',
     bioZh: ['初樸建築師事務所 資深設計師', '立聯合建築師事務所 經理設計師', '張景堯建築師事務所 設計師', '國立成功大學環境行為研究室 暨 建築系學士'],
     bioEn: ['Senior Designer, ProtoPlain Architects', 'Design Manager, Ambi Studio', 'Designer, JYCArchitects', 'Bachelor of Architecture, National Cheng Kung University'],
   },
-  { zh: '鄭弘毅', en: 'Hung Yi, Cheng', roleZh: '景觀建築經理', roleEn: 'Director of Landscape Architecture', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
-  { zh: '范聿睿', en: 'Yu Ruei, Fan', roleZh: '專案經理', roleEn: 'Project Manager', bioZh: ['國立台灣科技大學 建築系學士'], bioEn: ['National Taiwan University of Science and Technology, B.Arch.'] },
-  { zh: '徐子弘', en: 'Tzu Hung, Hsu', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
-  { zh: '許復皓', en: 'Fu Hao, Shiu', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
-  { zh: '廖紫淇', en: 'Zih Ci, Liao', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['國立成功大學 建築系碩士'], bioEn: ['National Cheng Kung University, M.Arch. II'] },
-  { zh: '鄭宇彤', en: 'Yu Tung, Cheng', roleZh: '建築設計師', roleEn: 'Computational Architect', bioZh: ['國立陽明交通大學 建築所碩士'], bioEn: ['National Yang Ming Chiao Tung University, M.Arch. II'] },
-  { zh: '黃承賢', en: 'Cheng Hsien, Huang', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
-  { zh: '林珊姍', en: 'Shan Shan, Lin', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['國立金門大學 建築系學士'], bioEn: ['National Quemoy University, B.Arch.'] },
-  { zh: '陳肇明', en: 'Chao-Ming, Chen', roleZh: '資深法規顧問', roleEn: 'Senior Regulatory Consultant', bioZh: ['經歷：葉建昌建築師事務所'], bioEn: ['Yeh Chien-Chang Architects'] },
-  { zh: '張賢國', en: 'Dagun', roleZh: '監造工程師', roleEn: 'Construction Supervisor', bioZh: ['建國科技大學 土木暨防災研究所碩士'], bioEn: ['Chienkuo Technology University, M.S.'] },
-  { zh: '余舜芬', en: 'Annie, Yu', roleZh: '執行企劃', roleEn: 'Planning Specialist', bioZh: ['東京私立慶應義塾大學 国文学専攻学士'], bioEn: ['Keio University, B.A. in Japanese Literature'] },
-  { zh: '康華倩', en: 'Hua Qian, Kang', roleZh: '所務行政', roleEn: 'Administration', bioZh: [], bioEn: [] },
+  { photo: chengHungYi, zh: '鄭弘毅', en: 'Hung Yi, Cheng', roleZh: '景觀建築經理', roleEn: 'Director of Landscape Architecture', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
+  { photo: fan, zh: '范聿睿', en: 'Yu Ruei, Fan', roleZh: '專案經理', roleEn: 'Project Manager', bioZh: ['國立台灣科技大學 建築系學士'], bioEn: ['National Taiwan University of Science and Technology, B.Arch.'] },
+  { photo: hsu, zh: '徐子弘', en: 'Tzu Hung, Hsu', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
+  { photo: shiu, zh: '許復皓', en: 'Fu Hao, Shiu', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
+  { photo: liao, zh: '廖紫淇', en: 'Zih Ci, Liao', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['國立成功大學 建築系碩士'], bioEn: ['National Cheng Kung University, M.Arch. II'] },
+  { photo: chengYuTung, zh: '鄭宇彤', en: 'Yu Tung, Cheng', roleZh: '建築設計師', roleEn: 'Computational Architect', bioZh: ['國立陽明交通大學 建築所碩士'], bioEn: ['National Yang Ming Chiao Tung University, M.Arch. II'] },
+  { photo: huang, zh: '黃承賢', en: 'Cheng Hsien, Huang', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['私立逢甲大學 建築系學士'], bioEn: ['Feng Chia University, B.Arch.'] },
+  { photo: linShanShan, zh: '林珊姍', en: 'Shan Shan, Lin', roleZh: '建築設計師', roleEn: 'Architectural Designer', bioZh: ['國立金門大學 建築系學士'], bioEn: ['National Quemoy University, B.Arch.'] },
+  { photo: chen, zh: '陳肇明', en: 'Chao-Ming, Chen', roleZh: '資深法規顧問', roleEn: 'Senior Regulatory Consultant', bioZh: ['經歷：葉建昌建築師事務所'], bioEn: ['Yeh Chien-Chang Architects'] },
+  { photo: dagun, zh: '張賢國', en: 'Dagun', roleZh: '監造工程師', roleEn: 'Construction Supervisor', bioZh: ['建國科技大學 土木暨防災研究所碩士'], bioEn: ['Chienkuo Technology University, M.S.'] },
+  { photo: yuAnnie, zh: '余舜芬', en: 'Annie, Yu', roleZh: '執行企劃', roleEn: 'Planning Specialist', bioZh: ['東京私立慶應義塾大學 国文学専攻学士'], bioEn: ['Keio University, B.A. in Japanese Literature'] },
+  { photo: kang, zh: '康華倩', en: 'Hua Qian, Kang', roleZh: '所務行政', roleEn: 'Administration', bioZh: [], bioEn: [] },
 ];
 
 export const affiliates = [
