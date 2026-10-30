@@ -42,6 +42,7 @@
 | 2026-10-31 | Production 環境變數 `PUBLIC_INDEXABLE=true`，重新部署後首頁已無 `noindex`；預覽網址仍帶 `noindex` 與 `X-Robots-Tag: noindex` |
 | 2026-10-31 | Bulk Redirect 清單 `pages_dev_to_apex`、規則 `pages-dev-to-apex`：`protoplain-web.pages.dev` → `https://protoplain.com`，301，勾 Preserve query string、Subpath matching、Preserve path suffix，**不勾** Include subdomains（保留 PR 預覽網址） |
 | 2026-10-31 | Phase 3 驗證通過：根網域 200；www 與 pages.dev 以 http、https 帶路徑與參數皆 301 到正式網址；分支預覽 200；MX 5 筆完好 |
+| 2026-10-31 | Search Console 新增網域資源 `sc-domain:protoplain.com`，以既有 DNS TXT 自動驗證通過，未新增 DNS 紀錄 |
 
 ## 二、步驟
 
@@ -96,10 +97,11 @@
 
 ### Phase 5｜收尾
 
-- Google Search Console 以網域屬性驗證 `protoplain.com`（既有的 google-site-verification 可沿用）
-- 新增 `robots.txt` 與 sitemap（另開 PR）
-- 舊站 protoplain.format.com 加上新網址公告或停用；Format 的網域無法由新站轉址
-- 舊站「聯繫」表單連到 Google 表單編輯網址，停用前一併修正
+- [x] Google Search Console 以網域屬性驗證 `protoplain.com`（2026-10-31 由既有 `google-site-verification` TXT 自動驗證通過，**這筆 TXT 不可刪**）
+- [x] 新增 `robots.txt` 與 sitemap（`src/pages/robots.txt.ts`、`@astrojs/sitemap`）
+- [ ] Search Console 提交 `https://protoplain.com/sitemap-index.xml`（sitemap 上線後）
+- [ ] 舊站 protoplain.format.com 加上新網址公告或停用；Format 的網域無法由新站轉址（2026-10-31 決定暫緩）
+- [ ] 聯繫表單：舊站連到 Google 表單的編輯網址，2026-10-31 以同一表單的填答網址測試回「找不到網頁」，表單可能已刪除或限制存取。需由表單擁有者提供可公開填答的連結，再填入 `src/data/members.ts` 的 `formUrl`
 
 ## 三、回復方式
 
