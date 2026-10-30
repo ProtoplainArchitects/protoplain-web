@@ -36,6 +36,12 @@
 | 2026-10-30 | Cloudflare 新增 zone（Free），AI 訓練爬蟲設為 Block；掃描到 16 筆，A 與 CNAME 共 10 筆由預設 Proxied 改為 DNS only |
 | 2026-10-30 | 對照 eNom 後台完整紀錄，補上 `vibe` CNAME，共 17 筆；以 `dig` 直接比對 eNom 與 Cloudflare 名稱伺服器的回答，全部一致 |
 | 2026-10-30 | eNom 名稱伺服器改為 `cruz.ns.cloudflare.com`、`dale.ns.cloudflare.com`；.com 註冊局與 whois 已更新；eNom 舊主機紀錄保留未刪 |
+| 2026-10-30 | Cloudflare zone 狀態轉為 Active（UTC 07:41） |
+| 2026-10-31 | Phase 3：Pages 新增自訂網域 `protoplain.com`（取代 `@` 的 4 筆 A）與 `www.protoplain.com`（取代 `www` → `ghs.google.com`），兩者皆改為 CNAME → `protoplain-web.pages.dev`、Proxied；MX、TXT 與其他 Google 子網域未動 |
+| 2026-10-31 | Redirect Rule `www-to-apex`：`*://www.protoplain.com/*` → `https://protoplain.com/${2}`，301，不勾 Preserve query string（萬用字元已含查詢字串，實測不重複） |
+| 2026-10-31 | Production 環境變數 `PUBLIC_INDEXABLE=true`，重新部署後首頁已無 `noindex`；預覽網址仍帶 `noindex` 與 `X-Robots-Tag: noindex` |
+| 2026-10-31 | Bulk Redirect 清單 `pages_dev_to_apex`、規則 `pages-dev-to-apex`：`protoplain-web.pages.dev` → `https://protoplain.com`，301，勾 Preserve query string、Subpath matching、Preserve path suffix，**不勾** Include subdomains（保留 PR 預覽網址） |
+| 2026-10-31 | Phase 3 驗證通過：根網域 200；www 與 pages.dev 以 http、https 帶路徑與參數皆 301 到正式網址；分支預覽 200；MX 5 筆完好 |
 
 ## 二、步驟
 
@@ -69,7 +75,7 @@
 ### Phase 3｜接上網站
 
 1. Cloudflare Pages › `protoplain-web` › Custom domains：新增 `protoplain.com`，再新增 `www.protoplain.com`。Cloudflare 會自動改 DNS，舊的 A 與 www CNAME 會被取代。**先在 Pages 新增網域，不要只手動加 CNAME**，否則會出現 522 錯誤。
-2. Redirect Rules：`www.protoplain.com/*` 301 轉到 `https://protoplain.com/${1}`，保留路徑與查詢字串。
+2. Redirect Rules：`*://www.protoplain.com/*` 301 轉到 `https://protoplain.com/${2}`，保留路徑與查詢字串（開頭用 `*://` 才接得住 http）。
 3. Pages 環境變數（Production）：`PUBLIC_INDEXABLE=true`，重新部署，確認首頁原始碼沒有 `noindex`。
 4. Bulk Redirects：`protoplain-web.pages.dev` 301 轉到 `https://protoplain.com`。分支預覽網址（`*.protoplain-web.pages.dev`）不受影響，PR 預覽照常使用。
 5. 驗證：
