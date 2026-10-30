@@ -21,12 +21,21 @@
 | `docs` | CNAME | `ghs.google.com` | — | 原樣複製 |
 | `sites` | CNAME | `ghs.google.com` | — | 原樣複製 |
 | `start` | CNAME | `ghs.google.com` | — | 原樣複製 |
+| `vibe` | CNAME | `ghs.googlehosted.com` | — | 原樣複製（使用中的 Google 協作平台網站，需登入；`dig` 與 Cloudflare 自動掃描都沒抓到，是從 eNom 後台補上的） |
 | `@` | A ×4 | `216.239.32.21`、`216.239.34.21`、`216.239.36.21`、`216.239.38.21` | 1800 | 改為 Pages（舊 Google 網域轉址，目前 http 回 404、https 無法連線） |
 | `www` | CNAME | `ghs.google.com` | 1800 | 改為 Pages（舊 Google 網站，目前 https 無法連線） |
 
 查無：AAAA、CAA、SPF、DKIM（`google._domainkey`）、DMARC（`_dmarc`）、萬用字元紀錄。
 
 `dig` 只查得到指定名稱。**切換前務必在 eNom 後台截圖或匯出完整的主機紀錄（host records）**，與上表比對，有表上沒有的紀錄一律原樣複製。
+
+## 一之一、執行紀錄
+
+| 日期 | 事項 |
+|---|---|
+| 2026-10-30 | Cloudflare 新增 zone（Free），AI 訓練爬蟲設為 Block；掃描到 16 筆，A 與 CNAME 共 10 筆由預設 Proxied 改為 DNS only |
+| 2026-10-30 | 對照 eNom 後台完整紀錄，補上 `vibe` CNAME，共 17 筆；以 `dig` 直接比對 eNom 與 Cloudflare 名稱伺服器的回答，全部一致 |
+| 2026-10-30 | eNom 名稱伺服器改為 `cruz.ns.cloudflare.com`、`dale.ns.cloudflare.com`；.com 註冊局與 whois 已更新；eNom 舊主機紀錄保留未刪 |
 
 ## 二、步驟
 
