@@ -2,7 +2,7 @@
 title: "第四屆「島嶼構竹」新銳建築展"
 titleEn: "Tectonics of the Island"
 subtitle: null
-year: 2024
+year: 2025
 kind: exhibition
 axis: null
 location: null
