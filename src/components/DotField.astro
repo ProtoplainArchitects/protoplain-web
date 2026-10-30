@@ -1,0 +1,163 @@
+---
+// 歷年專案點狀圖：pp-archive 統計頁開頭的「照片成像」公開版。
+// 每個深色點是一件專案，重量愈高點愈大、落在照片愈暗的位置；淡色點是補滿影像的背景。
+// 資料由 scripts/export_dots.py 產生，只含座標、重量、年份與網站作品 slug。
+import dots from '../data/dots.json';
+import { getWorks, workUrl } from '../lib/works';
+
+// 只有正式建置裡存在的作品才可點；其餘點匿名，只顯示年份
+const published = new Map(
+  (await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, { t: w.data.title, h: workUrl(w.id, 'zh') }]),
+);
+const data = {
+  aspect: dots.aspect,
+  air: dots.air,
+  dots: dots.dots.map((d) => ({ ...d, s: d.s && published.has(d.s) ? d.s : null })),
+  works: Object.fromEntries(published),
+};
+const linked = [...new Set(data.dots.map((d) => d.s).filter((s): s is string => !!s))].map((s) => ({ s, ...published.get(s)! }));
+const years = data.dots.map((d) => d.y).filter((y): y is number => !!y);
+const span = `${Math.min(...years)}–${Math.max(...years)}`;
+---
+<section class="dots" aria-labelledby="dots-title">
+  <div class="section-head">
+    <h2 id="dots-title">{data.dots.length} 件專案</h2>
+    <span class="pp-data dots-span">{span}</span>
+  </div>
+  <div class="dots-stage" style={`aspect-ratio: ${data.aspect}`}>
+    <canvas class="dots-canvas" role="img" aria-label={`事務所 ${span} 年間 ${data.dots.length} 件專案的點狀圖，每一點是一件專案`}></canvas>
+    <div class="dots-tip" hidden></div>
+  </div>
+  <p class="dots-note">每一點是一件專案，重量愈高點愈大。滑過看年份，已上站的作品可點進作品頁。</p>
+  <ul class="dots-links" aria-label="圖中可點的作品">
+    {linked.map((w) => <li><a href={w.h}>{w.t}</a></li>)}
+  </ul>
+  <script type="application/json" class="dots-data" set:html={JSON.stringify(data)}></script>
+</section>
+
+<style>
+  .dots { padding-bottom: var(--pp-space-xl); }
+  .dots-span { color: var(--pp-ink-sub); }
+  .dots-stage { position: relative; width: 100%; border-top: var(--pp-border-width) solid var(--pp-ink); }
+  .dots-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .dots-tip {
+    position: absolute; pointer-events: none; white-space: nowrap;
+    background: var(--pp-bg-card); border: var(--pp-border-width) solid var(--pp-line-strong);
+    border-radius: var(--pp-radius-control); padding: 6px 10px;
+    font-size: var(--pp-fs-caption); line-height: 1.4;
+  }
+  .dots-note { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); margin: var(--pp-space-sm) 0 var(--pp-space-xs); }
+  .dots-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 2px var(--pp-space-sm); font-size: var(--pp-fs-caption); }
+  .dots-links a { color: var(--pp-ink-sub); }
+  .dots-links a:hover { color: var(--pp-ink); }
+</style>
+
+<script>
+  type Dot = { u: number; v: number; t: number; w: number; y: number | null; s: string | null };
+  type Data = { aspect: number; air: [number, number, number][]; dots: Dot[]; works: Record<string, { t: string; h: string }> };
+
+  function init(root: HTMLElement) {
+    const data: Data = JSON.parse(root.querySelector('.dots-data')!.textContent!);
+    const cv = root.querySelector<HTMLCanvasElement>('.dots-canvas')!;
+    const tip = root.querySelector<HTMLElement>('.dots-tip')!;
+    const ctx = cv.getContext('2d');
+    if (!ctx) return;
+
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue('--pp-ink').trim();
+    const hint = css.getPropertyValue('--pp-ink-hint').trim();
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 每個點一組隨機相位，做極輕的浮動；進場時從散開的位置聚回照片
+    const rnd = (i: number) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
+    const air = data.air.map((a, i) => ({ u: a[0], v: a[1], t: a[2], p: rnd(i) * 6.28, su: rnd(i + 7), sv: rnd(i + 13) }));
+    const keys = data.dots.map((d, i) => ({ ...d, p: rnd(i + 3000) * 6.28, su: rnd(i + 3007), sv: rnd(i + 3013) }));
+
+    let W = 0, H = 0, dpr = 1, airR = 1.4;
+    const resize = () => {
+      const r = cv.getBoundingClientRect();
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      W = r.width; H = r.height;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      airR = Math.max(0.9, Math.min(1.8, W / 700));
+    };
+    new ResizeObserver(resize).observe(cv);
+    resize();
+
+    const t0 = performance.now();
+    let hover: (typeof keys)[number] | null = null;
+    const radius = (w: number) => (1.4 + 3.2 * w) * Math.max(0.6, Math.min(1, W / 1000));
+    const pos = (d: { u: number; v: number; p: number; su: number; sv: number }, t: number, enter: number) => {
+      const drift = reduce ? 0 : 1.2;
+      const x = d.u * W + Math.sin(t * 0.4 + d.p) * drift;
+      const y = d.v * H + Math.cos(t * 0.33 + d.p) * drift;
+      // enter：0＝散開，1＝在照片位置
+      return [x + (d.su * W - x) * (1 - enter), y + (d.sv * H - y) * (1 - enter)];
+    };
+
+    const draw = (now: number) => {
+      const t = (now - t0) / 1000;
+      const enter = reduce ? 1 : Math.min(1, Math.max(0, (t - 0.2) / 2.4));
+      const e = 1 - Math.pow(1 - enter, 3);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = hint;
+      for (const a of air) {
+        const [x, y] = pos(a, t, e);
+        // 色調愈深（t 愈大）點愈大、愈實，背景點疊出照片的明暗
+        ctx.globalAlpha = 0.2 + 0.7 * a.t;
+        ctx.beginPath(); ctx.arc(x, y, airR * (0.6 + 0.9 * a.t), 0, 6.283); ctx.fill();
+      }
+      ctx.fillStyle = ink;
+      for (const d of keys) {
+        const [x, y] = pos(d, t, e);
+        ctx.globalAlpha = (d.s ? 0.95 : 0.55 + 0.3 * d.w) * (0.3 + 0.7 * e);
+        ctx.beginPath(); ctx.arc(x, y, radius(d.w), 0, 6.283); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (hover) {
+        const [x, y] = pos(hover, t, e);
+        ctx.strokeStyle = ink; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(x, y, radius(hover.w) + 5, 0, 6.283); ctx.stroke();
+      }
+    };
+
+    let raf = 0, visible = true;
+    const loop = (now: number) => { draw(now); raf = visible && !reduce ? requestAnimationFrame(loop) : 0; };
+    new IntersectionObserver(([en]) => {
+      visible = en.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(loop);
+    }).observe(cv);
+    raf = requestAnimationFrame(loop);
+
+    const pick = (ev: PointerEvent) => {
+      const r = cv.getBoundingClientRect();
+      const mx = ev.clientX - r.left, my = ev.clientY - r.top;
+      let best: (typeof keys)[number] | null = null, bd = 14 * 14;
+      for (const d of keys) {
+        const dx = d.u * W - mx, dy = d.v * H - my, dd = dx * dx + dy * dy;
+        if (dd < bd) { bd = dd; best = d; }
+      }
+      return { best, mx, my };
+    };
+    cv.addEventListener('pointermove', (ev) => {
+      const { best, mx, my } = pick(ev);
+      hover = best;
+      cv.style.cursor = best?.s ? 'pointer' : 'default';
+      if (!best) { tip.hidden = true; if (reduce) draw(performance.now()); return; }
+      const w = best.s ? data.works[best.s] : null;
+      tip.textContent = w ? `${w.t}　${best.y ?? ''}` : best.y ? `${best.y}` : '—';
+      tip.hidden = false;
+      tip.style.left = `${Math.min(mx + 12, W - tip.offsetWidth - 4)}px`;
+      tip.style.top = `${Math.max(my - 36, 4)}px`;
+      if (reduce) draw(performance.now());
+    });
+    cv.addEventListener('pointerleave', () => { hover = null; tip.hidden = true; if (reduce) draw(performance.now()); });
+    cv.addEventListener('click', (ev) => {
+      const { best } = pick(ev);
+      if (best?.s) location.href = data.works[best.s].h;
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('.dots').forEach(init);
+</script>

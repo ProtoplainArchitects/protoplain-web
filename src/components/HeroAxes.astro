@@ -1,0 +1,114 @@
+---
+// 首頁主視覺 方向二｜雙軸並置：人文構築／自然構築左右並列，滑過一側展開
+import { Image } from 'astro:assets';
+import type { Work } from '../lib/works';
+
+interface Props { works: Work[] }
+const { works } = Astro.props;
+
+// 每軸主圖用哪件作品；換圖只改這裡（必須是非 draft、有封面的作品）
+const FEATURED: Record<string, string> = {
+  人文構築: 'office-in-yuanlin',
+  自然構築: 'morning-mist-pavilion',
+};
+
+const sides = [
+  { axis: '人文構築', tag: 'ARTIFICIAL ELEMENT' },
+  { axis: '自然構築', tag: 'NATURE ELEMENT' },
+].map((s) => {
+  const list = works.filter((w) => w.data.kind === 'work' && w.data.axis === s.axis);
+  const feat = list.find((w) => w.id === FEATURED[s.axis] && w.data.cover) ?? list.find((w) => w.data.cover);
+  return { ...s, list, feat };
+});
+const credit = sides.map((s) => s.feat && `${s.feat.data.title} ${s.feat.data.year}`).filter(Boolean).join(' ／ ');
+---
+<section class="axes" aria-label="作品兩軸">
+  {sides.map((s) => (
+    <a class="axis" href={`/works/?axis=${encodeURIComponent(s.axis)}`}>
+      {s.feat?.data.cover && (
+        <Image
+          src={s.feat.data.cover}
+          alt={s.feat.data.title}
+          widths={[640, 1000, 1260]}
+          sizes="(max-width: 760px) 100vw, 60vw"
+          format="webp"
+          loading="eager"
+        />
+      )}
+      <span class="axis-label">
+        <span class="pp-data axis-tag">{s.tag}</span>
+        <span class="axis-name">{s.axis}</span>
+        <span class="axis-works">{s.list.map((w) => w.data.title).join(' · ')}</span>
+      </span>
+    </a>
+  ))}
+</section>
+<div class="axes-foot">
+  <p>形體之外的光與氣，建築之外的時間與生命。</p>
+  <span class="pp-data">{credit}</span>
+</div>
+
+<style>
+  .axes {
+    display: flex;
+    gap: var(--pp-space-xs);
+    height: min(72vh, 680px);
+    min-height: 440px;
+  }
+  .axis {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--pp-radius-control);
+    background: var(--pp-bg-card-sub);
+    color: var(--pp-ink);
+    transition: flex-grow 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .axis:hover { color: var(--pp-ink); text-decoration: none; }
+  .axis:focus-visible { outline: 1px solid var(--pp-ink); outline-offset: -6px; }
+  .axis img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: filter 0.9s ease, transform 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .axis-label {
+    position: absolute; left: var(--pp-space-md); right: var(--pp-space-md); bottom: var(--pp-space-md);
+    max-width: 420px;
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 18px 22px;
+    background: var(--pp-bg-card);
+    border-radius: var(--pp-radius-control);
+  }
+  .axis-tag { font-size: 11px; letter-spacing: 0.14em; color: var(--pp-ink-sub); }
+  .axis-name { font-size: var(--pp-fs-h2); font-weight: var(--pp-fw-medium); }
+  .axis-works { font-size: var(--pp-fs-caption); line-height: 1.7; color: var(--pp-ink-sub); transition: opacity 0.6s; }
+
+  /* 滑過或鍵盤聚焦一側：該側展開，另一側轉灰、收起作品清單（只在有滑鼠的裝置） */
+  @media (hover: hover) {
+    .axes:has(.axis:hover, .axis:focus-visible) .axis:is(:hover, :focus-visible) { flex-grow: 1.9; }
+    .axis:is(:hover, :focus-visible) img { transform: scale(1.03); }
+    .axes:has(.axis:hover, .axis:focus-visible) .axis:not(:hover, :focus-visible) img { filter: grayscale(1); }
+    .axes:has(.axis:hover, .axis:focus-visible) .axis:not(:hover, :focus-visible) .axis-works { opacity: 0; }
+  }
+
+  .axes-foot {
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline;
+    gap: var(--pp-space-xs) var(--pp-space-md);
+    padding: var(--pp-space-md) 0 var(--pp-space-xl);
+  }
+  .axes-foot p { margin: 0; letter-spacing: 0.04em; }
+  .axes-foot .pp-data { color: var(--pp-ink-sub); }
+
+  @media (max-width: 760px) {
+    .axes { flex-direction: column; height: auto; min-height: 0; }
+    .axis { flex: none; aspect-ratio: 4 / 5; }
+    .axis-label { left: var(--pp-space-sm); right: auto; bottom: var(--pp-space-sm); padding: 12px 16px; gap: 2px; }
+    /* 手機上清單會蓋掉照片，只留軸名；完整清單在作品頁 */
+    .axis-works { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .axis, .axis img, .axis-works { transition: none; }
+  }
+</style>

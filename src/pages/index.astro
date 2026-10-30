@@ -1,16 +1,18 @@
 ---
 import Base from '../layouts/Base.astro';
 import WorkGrid from '../components/WorkGrid.astro';
+import HeroAxes from '../components/HeroAxes.astro';
+import DotField from '../components/DotField.astro';
 import { getWorks } from '../lib/works';
 
-const works = (await getWorks()).filter((w) => w.data.kind === 'work').slice(0, 6);
+const all = await getWorks();
+const works = all.filter((w) => w.data.kind === 'work').slice(0, 6);
 ---
 <Base lang="zh" description="初樸建築師事務所，臺中豐原。竹、木、土自然材料的當代構築。">
-  <!-- 首頁主視覺為暫置版本：方向（原 1–5 樣板）定案後替換 -->
-  <section class="hero">
-    <h1>竹、木、土<br />自然材料的當代構築</h1>
-    <p class="pp-caption">人文構築 ARTIFICIAL element ／ 自然構築 NATURE element</p>
-  </section>
+  <!-- 首頁主視覺試作：方向二｜雙軸並置（原樣板 HeroB） -->
+  <h1 class="visually-hidden">竹、木、土自然材料的當代構築</h1>
+  <HeroAxes works={all} />
+  <DotField />
   <section>
     <div class="section-head">
       <h2>近期作品</h2>

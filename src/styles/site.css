@@ -27,6 +27,11 @@ nav a.lang {
 .hero { padding: var(--pp-space-xl) 0 calc(var(--pp-space-xl) * 1.5); }
 .hero h1 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.35; letter-spacing: 0.02em; margin-bottom: var(--pp-space-md); }
 
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
 .page-title { margin-bottom: var(--pp-space-lg); }
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--pp-space-md); }
 .section-head a { font-size: var(--pp-fs-caption); }
