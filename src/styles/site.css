@@ -80,6 +80,13 @@ nav a.lang {
 .work-body h3 { margin-top: var(--pp-space-lg); }
 .back { margin-top: var(--pp-space-xl); font-size: var(--pp-fs-caption); }
 
+/* 作品頁的數位構築、說明書、照片區塊（src/data/builds.ts 有資料的作品才有） */
+.build { margin-top: var(--pp-space-xl); padding-top: var(--pp-space-md); border-top: var(--pp-border-width) solid var(--pp-ink); }
+.build-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px var(--pp-space-sm); margin-bottom: var(--pp-space-md); }
+.build-head h2 { margin: 0; white-space: nowrap; }
+.build-kicker { font-size: 11px; letter-spacing: 0.12em; color: var(--pp-ink-sub); }
+.build-note { font-size: 12px; line-height: 1.6; color: var(--pp-ink-sub); margin: var(--pp-space-sm) 0 0; max-width: 680px; }
+
 @media (max-width: 640px) {
   .site-header { margin-bottom: var(--pp-space-lg); align-items: flex-start; }
   nav { flex-wrap: wrap; justify-content: flex-end; gap: var(--pp-space-xs) var(--pp-space-sm); }
