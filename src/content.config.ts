@@ -23,7 +23,7 @@ const works = defineCollection({
       // draft: true 的作品只在 npm run dev 看得到，不進正式建置
       draft: z.boolean().default(false),
       review: z.array(z.string()).default([]),
-      legacy: z.object({ zh: z.string().url().nullable(), en: z.string().url().nullable() }).optional(),
+      legacy: z.object({ zh: z.url().nullable(), en: z.url().nullable() }).optional(),
     }),
 });
 
