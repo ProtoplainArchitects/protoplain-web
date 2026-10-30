@@ -62,7 +62,7 @@ docs/                       slug 對照表、內容待處理清單
 
 - `main` 合併後自動部署到 Cloudflare Pages。正式網域接上之前，網站帶 `noindex`。環境變數 `PUBLIC_INDEXABLE=true` 才會開放搜尋引擎索引，只在正式網域切換時設定。
 - slug 一經公開就不改。新的 slug 要先列進 `docs/slug-map.md`，經主持建築師核可才能發布。
-- protoplain.com 的 DNS 同時承載 Google Workspace 郵件（MX、SPF、DKIM、DMARC）。動 DNS 前先完整匯出現有紀錄，任何一筆郵件紀錄都不能刪。
+- protoplain.com 的 DNS 同時承載 Google Workspace 郵件（MX 5 筆與 Google 服務 CNAME；2026-10-30 查證時沒有 SPF、DKIM、DMARC）。動 DNS 前先完整匯出現有紀錄，任何一筆郵件紀錄都不能刪。切換步驟見 `docs/domain-cutover.md`。
 - 金鑰（Notion、R2、Cloudflare）放在 Cloudflare 環境變數，不寫進 repo，也不放 `.env` 進版控。
 
 ## 可攜性（保持隨時能換託管平台）
