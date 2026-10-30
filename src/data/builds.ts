@@ -73,7 +73,7 @@ export const builds: Record<string, Build> = {
     ],
     manual: {
       pdf: '/works/bamboo-light-pavilion/assembly-manual-v03.pdf',
-      size: '5.3 MB',
+      size: '4.4 MB',
       version: 'v03｜2026.10',
       pages: blp.manual,
       note: '說明書為組裝示意，不是施工圖。開工前請依現場狀況複核並調整。',
