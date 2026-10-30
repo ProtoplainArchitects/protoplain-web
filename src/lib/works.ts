@@ -3,7 +3,11 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 export type Lang = 'zh' | 'en';
 export type Work = CollectionEntry<'works'>;
 
-const showDrafts = import.meta.env.DEV;
+// 本機開發一律顯示 draft；Cloudflare 預覽建置設 PUBLIC_SHOW_DRAFTS=true 時也顯示，讓審稿看得到。
+// 開放索引的正式建置（PUBLIC_INDEXABLE=true）永遠不顯示，就算預覽變數誤設到正式環境也不會發布 draft。
+const showDrafts =
+  import.meta.env.DEV ||
+  (import.meta.env.PUBLIC_SHOW_DRAFTS === 'true' && import.meta.env.PUBLIC_INDEXABLE !== 'true');
 
 /** 依年份新到舊排序；正式建置排除 draft */
 export async function getWorks(): Promise<Work[]> {
