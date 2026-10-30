@@ -7,7 +7,7 @@
 
 | 指令 | 用途 |
 |---|---|
-| `npm install` | 安裝（Node 22 以上，見 `.nvmrc`） |
+| `npm install` | 安裝（Node 22.23.4 以上，見 `.nvmrc`） |
 | `npm run dev` | 本機預覽 http://localhost:4321 ，**看得到 draft 作品** |
 | `npm run build` | 正式建置到 `dist/`，**不含 draft**；推 PR 前必跑，必須零錯誤 |
 | `npm run check` | 型別與 content schema 檢查 |
