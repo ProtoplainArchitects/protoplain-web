@@ -1,0 +1,38 @@
+---
+import { contact } from '../data/members';
+import type { Lang } from '../lib/works';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+---
+<div class="contact">
+  <p class="contact-intro">
+    {(en ? contact.introEn : contact.introZh).map((l) => <>{l}<br /></>)}
+  </p>
+  <dl class="contact-facts">
+    <div>
+      <dt>{en ? 'Address' : '地址'}</dt>
+      <dd>{en ? contact.addressEn : contact.addressZh}</dd>
+    </div>
+    <div>
+      <dt>Instagram</dt>
+      <dd><a href={contact.instagram.href} rel="noopener">{contact.instagram.label}</a></dd>
+    </div>
+  </dl>
+  {contact.formUrl && (
+    <a class="pp-btn contact-form" href={contact.formUrl} rel="noopener">{en ? 'Get in touch' : '填寫聯繫表單'}</a>
+  )}
+</div>
+
+<style>
+  .contact { max-width: 680px; }
+  .contact-intro { line-height: 2; margin-bottom: var(--pp-space-xl); }
+  .contact-facts { margin: 0 0 var(--pp-space-lg); border-top: var(--pp-border-width) solid var(--pp-ink); }
+  .contact-facts div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--pp-space-md); padding: var(--pp-space-sm) 0; border-bottom: var(--pp-border-width) solid var(--pp-line); }
+  .contact-facts dt { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .contact-facts dd { margin: 0; }
+  .contact-facts a { color: var(--pp-ink); text-decoration: underline; text-underline-offset: 3px; }
+  .contact-form { display: inline-block; color: var(--pp-ink); }
+  .contact-form:hover { text-decoration: none; border-color: var(--pp-ink); }
+</style>

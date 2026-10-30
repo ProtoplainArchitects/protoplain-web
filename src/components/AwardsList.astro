@@ -1,0 +1,46 @@
+---
+import { awards, awardsIntro } from '../data/awards';
+import { getWorks, getEnglishIds, workUrl, type Lang } from '../lib/works';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+
+// 只連結正式建置裡存在的作品頁（draft 不連）；英文版另需有英文頁
+const published = new Set((await getWorks()).filter((w) => !w.data.draft).map((w) => w.id));
+const enIds = await getEnglishIds();
+const hrefFor = (slug: string | null) => {
+  if (!slug || !published.has(slug)) return null;
+  return lang === 'en' && !enIds.has(slug) ? workUrl(slug, 'zh') : workUrl(slug, lang);
+};
+---
+<p class="lead">{awardsIntro[lang]}</p>
+<div class="awards">
+  {awards.map((g) => {
+    const href = hrefFor(g.slug);
+    const name = lang === 'en' ? g.en : g.zh;
+    return (
+      <section class="award-group">
+        <h2 class="award-work">{href ? <a href={href}>{name}</a> : name}</h2>
+        <ul class="award-items">
+          {g.items.map((a) => <li>{lang === 'en' ? a.en : a.zh}</li>)}
+        </ul>
+      </section>
+    );
+  })}
+</div>
+
+<style>
+  .awards { border-top: var(--pp-border-width) solid var(--pp-ink); }
+  .award-group {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--pp-space-md);
+    padding: var(--pp-space-md) 0;
+    border-bottom: var(--pp-border-width) solid var(--pp-line);
+  }
+  .award-work { font-size: var(--pp-fs-h3); margin: 0; }
+  .award-work a { color: var(--pp-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: var(--pp-border-width); }
+  .award-items { list-style: none; margin: 0; padding: 0; }
+  .award-items li { font-size: var(--pp-fs-caption); padding: 2px 0; }
+  @media (max-width: 640px) {
+    .award-group { grid-template-columns: minmax(0, 1fr); gap: var(--pp-space-xs); }
+  }
+</style>

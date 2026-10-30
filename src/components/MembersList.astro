@@ -1,0 +1,52 @@
+---
+import { members, affiliates } from '../data/members';
+import type { Lang } from '../lib/works';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+---
+<ul class="members">
+  {members.map((m) => (
+    <li class="member">
+      <span class="member-name">{en ? m.en : m.zh}</span>
+      <span class="member-role">{en ? m.roleEn : m.roleZh}</span>
+      {(en ? m.bioEn : m.bioZh).length > 0 && (
+        <ul class="member-bio">
+          {(en ? m.bioEn : m.bioZh).map((b) => <li>{b}</li>)}
+        </ul>
+      )}
+    </li>
+  ))}
+</ul>
+
+<p class="pp-data scope">{en ? 'Arch. | Tectonic | Urban' : '建築｜自然構築｜豐原計畫'}</p>
+<div class="affiliates">
+  {affiliates.map((a) => (
+    <section class="affiliate">
+      <h2>{en ? a.en : a.zh}</h2>
+      {(en ? a.bodyEn : a.bodyZh).map((p) => <p>{p}</p>)}
+      {a.link && <a class="ext" href={a.link.href} rel="noopener">{a.link.label}</a>}
+    </section>
+  ))}
+</div>
+
+<style>
+  .members {
+    list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0 var(--pp-space-lg);
+    border-top: var(--pp-border-width) solid var(--pp-ink);
+  }
+  .member { display: flex; flex-direction: column; gap: 2px; padding: var(--pp-space-md) 0; border-bottom: var(--pp-border-width) solid var(--pp-line); }
+  .member-name { font-weight: var(--pp-fw-medium); }
+  .member-role { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .member-bio { list-style: none; margin: var(--pp-space-xs) 0 0; padding: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); line-height: 1.6; }
+
+  .scope { color: var(--pp-ink-sub); letter-spacing: 0.08em; margin-bottom: var(--pp-space-md); }
+  .affiliates { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--pp-space-lg); }
+  .affiliate { border-top: var(--pp-border-width) solid var(--pp-ink); padding-top: var(--pp-space-md); }
+  .affiliate h2 { font-size: var(--pp-fs-h3); }
+  .affiliate p { color: var(--pp-ink-sub); }
+  .ext { font-size: var(--pp-fs-caption); color: var(--pp-ink); text-decoration: underline; text-underline-offset: 3px; }
+</style>
