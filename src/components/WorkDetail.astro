@@ -28,5 +28,6 @@ const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
   <div class="work-body">
     <slot />
   </div>
+  <slot name="extra" />
   <p class="back"><a href={lang === 'en' ? '/en/works/' : '/works/'}>{t('← 回作品列表', '← All works')}</a></p>
 </article>

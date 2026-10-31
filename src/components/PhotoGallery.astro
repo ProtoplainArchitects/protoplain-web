@@ -1,0 +1,71 @@
+---
+// 照片：施工過程與情境模擬分開排，情境模擬一律標示，不當作實景照片。點開進 Lightbox。
+import { Image, getImage } from 'astro:assets';
+import type { Build, GalleryItem } from '../data/builds';
+
+interface Props { build: Build; title: string }
+const { build, title } = Astro.props;
+const withFull = async (g: GalleryItem) => ({ ...g, full: (await getImage({ src: g.src, width: 1800, format: 'webp' })).src });
+const photos = await Promise.all(build.gallery.filter((g) => g.kind === 'photo').map(withFull));
+const renders = await Promise.all(build.gallery.filter((g) => g.kind === 'render').map(withFull));
+---
+<section class="build build-gallery" aria-labelledby="gallery-title">
+  <div class="build-head">
+    <h2 id="gallery-title">照片</h2>
+    <span class="pp-data build-kicker">PHOTOS · {photos.length + renders.length}</span>
+  </div>
+
+  {photos.length > 0 && (
+    <>
+      <h3 class="pg-sub">施工過程</h3>
+      <ul class="pg-grid pg-photos">
+        {photos.map((p) => (
+          <li>
+            <a href={p.full} data-lb="gallery" data-caption={p.caption}>
+              <Image src={p.src} alt={`${title}：${p.caption}`} widths={[400, 640]} sizes="(max-width: 760px) 50vw, 300px" format="webp" loading="lazy" />
+            </a>
+            <p class="pg-cap">{p.caption}</p>
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+
+  {renders.length > 0 && (
+    <>
+      <h3 class="pg-sub">情境模擬</h3>
+      <ul class="pg-grid pg-renders">
+        {renders.map((p) => (
+          <li>
+            <a href={p.full} data-lb="gallery" data-caption={`情境模擬：${p.caption}`}>
+              <Image src={p.src} alt={`${title}情境模擬：${p.caption}`} widths={[480, 800]} sizes="(max-width: 760px) 100vw, 310px" format="webp" loading="lazy" />
+            </a>
+            <p class="pg-cap">{p.caption}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="build-note">情境模擬圖以模型為基礎合成，人物與場景不是實景照片，也不代表完工後的實際使用情形。</p>
+    </>
+  )}
+</section>
+
+<style>
+  .pg-sub { font-size: var(--pp-fs-caption); font-weight: var(--pp-fw-medium); color: var(--pp-ink-sub); margin: var(--pp-space-md) 0 var(--pp-space-xs); }
+  .pg-sub:first-of-type { margin-top: 0; }
+  .pg-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--pp-space-sm); }
+  .pg-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pg-renders { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pg-grid a { display: block; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .pg-photos a { aspect-ratio: 4 / 3; }
+  .pg-renders a { aspect-ratio: 16 / 9; }
+  .pg-grid img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; }
+  /* 直式施工照裁成 4:3 時往上取，人與手上的構件比較不會被切掉 */
+  .pg-photos img { object-position: 50% 25%; }
+  .pg-grid a:hover img { opacity: 0.88; }
+  .pg-cap { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); margin: 4px 0 0; }
+
+  @media (max-width: 760px) {
+    .pg-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pg-renders { grid-template-columns: 1fr; }
+  }
+</style>

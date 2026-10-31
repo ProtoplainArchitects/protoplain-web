@@ -1,0 +1,86 @@
+---
+// 頁面上所有 a[data-lb] 共用的放大檢視；同一個 data-lb 值為一組，可以左右切換。
+// 沒有 JavaScript 時連結直接開大圖。
+---
+<dialog class="lb" aria-label="放大檢視">
+  <figure class="lb-fig">
+    <img class="lb-img" alt="" />
+    <figcaption class="lb-cap">
+      <span class="lb-text"></span>
+      <span class="pp-data lb-count"></span>
+    </figcaption>
+  </figure>
+  <button type="button" class="lb-btn lb-prev" aria-label="上一張">←</button>
+  <button type="button" class="lb-btn lb-next" aria-label="下一張">→</button>
+  <button type="button" class="lb-btn lb-close" aria-label="關閉">×</button>
+</dialog>
+
+<style>
+  .lb {
+    width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+    background: var(--pp-bg-page); color: var(--pp-ink);
+  }
+  .lb::backdrop { background: var(--pp-bg-page); }
+  .lb-fig { position: absolute; inset: 56px 64px 72px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--pp-space-xs); }
+  .lb-img { max-width: 100%; max-height: calc(100% - 32px); object-fit: contain; border-radius: var(--pp-radius-control); }
+  .lb-cap { display: flex; gap: var(--pp-space-sm); font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .lb-btn {
+    position: absolute; font: inherit; font-size: 18px; width: 44px; height: 44px; cursor: pointer;
+    background: var(--pp-bg-card); color: var(--pp-ink);
+    border: var(--pp-border-width) solid var(--pp-line-strong); border-radius: var(--pp-radius-control);
+  }
+  .lb-btn:hover { border-color: var(--pp-ink); }
+  .lb-btn[hidden] { display: none; }
+  .lb-prev { left: var(--pp-space-sm); top: 50%; transform: translateY(-50%); }
+  .lb-next { right: var(--pp-space-sm); top: 50%; transform: translateY(-50%); }
+  .lb-close { right: var(--pp-space-sm); top: var(--pp-space-sm); }
+
+  @media (max-width: 640px) {
+    .lb-fig { inset: 56px 8px 72px; }
+    .lb-prev, .lb-next { top: auto; bottom: var(--pp-space-sm); transform: none; }
+    .lb-prev { left: calc(50% - 52px); }
+    .lb-next { right: calc(50% - 52px); }
+  }
+</style>
+
+<script>
+  const dlg = document.querySelector<HTMLDialogElement>('.lb');
+  if (dlg) {
+    const img = dlg.querySelector<HTMLImageElement>('.lb-img')!;
+    const text = dlg.querySelector<HTMLElement>('.lb-text')!;
+    const count = dlg.querySelector<HTMLElement>('.lb-count')!;
+    const prev = dlg.querySelector<HTMLButtonElement>('.lb-prev')!;
+    const next = dlg.querySelector<HTMLButtonElement>('.lb-next')!;
+    let group: HTMLAnchorElement[] = [];
+    let at = 0;
+    let opener: HTMLElement | null = null;
+
+    const show = (i: number) => {
+      at = (i + group.length) % group.length;
+      const a = group[at];
+      img.src = a.href;
+      img.alt = a.querySelector('img')?.alt ?? '';
+      text.textContent = a.dataset.caption ?? '';
+      count.textContent = group.length > 1 ? `${at + 1} / ${group.length}` : '';
+      prev.hidden = next.hidden = group.length < 2;
+    };
+
+    document.addEventListener('click', (e) => {
+      const a = (e.target as Element).closest<HTMLAnchorElement>('a[data-lb]');
+      if (!a || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      group = Array.from(document.querySelectorAll<HTMLAnchorElement>(`a[data-lb="${a.dataset.lb}"]`));
+      opener = a;
+      show(group.indexOf(a));
+      dlg.showModal();
+    });
+    prev.addEventListener('click', () => show(at - 1));
+    next.addEventListener('click', () => show(at + 1));
+    dlg.querySelector('.lb-close')!.addEventListener('click', () => dlg.close());
+    dlg.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(at - 1);
+      if (e.key === 'ArrowRight') show(at + 1);
+    });
+    dlg.addEventListener('close', () => { img.removeAttribute('src'); opener?.focus(); });
+  }
+</script>

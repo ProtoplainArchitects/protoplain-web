@@ -20,7 +20,7 @@ const works = defineCollection({
       axis: z.enum(['人文構築', '自然構築']).nullable(),
       location: z.string().nullable(),
       cover: image().optional(),
-      // draft: true 的作品只在 npm run dev 看得到，不進正式建置
+      // draft: true 的作品只在 npm run dev 與 Cloudflare 預覽網址看得到，不進正式建置
       draft: z.boolean().default(false),
       review: z.array(z.string()).default([]),
       legacy: z.object({ zh: z.url().nullable(), en: z.url().nullable() }).optional(),
