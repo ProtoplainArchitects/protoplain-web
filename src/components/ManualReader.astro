@@ -2,11 +2,10 @@
 // 組裝說明書：逐頁橫向翻閱，桌機一次兩頁。步驟鈕跳到該步頁面，也會跟著數位構築選的步驟翻頁。
 // 點頁面放大（Lightbox），全本 PDF 可下載。
 import { Image, getImage } from 'astro:assets';
-import type { Build } from '../data/builds';
+import type { Build, BuildStep } from '../data/builds';
 
-interface Props { build: Build; title: string }
-const { build, title } = Astro.props;
-const { manual, steps } = build;
+interface Props { manual: NonNullable<Build['manual']>; steps: BuildStep[]; title: string }
+const { manual, steps, title } = Astro.props;
 const total = manual.pages.length;
 const pages = await Promise.all(
   manual.pages.map(async (src, i) => ({ src, n: i + 1, full: (await getImage({ src, width: 1240, format: 'webp' })).src })),
@@ -20,7 +19,7 @@ const pages = await Promise.all(
 
   <div class="mr-bar">
     <div class="mr-steps" role="group" aria-label="跳到步驟">
-      {steps.map((s, i) => (
+      {steps.map((s, i) => s.page && (
         <button type="button" class="mr-chip pp-data" data-step={i + 1} data-page={s.page} title={`${s.no} ${s.zh}，第 ${s.page} 頁`}>{s.no}</button>
       ))}
     </div>
