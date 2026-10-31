@@ -1,0 +1,368 @@
+---
+// 數位構築：BIM 模型依組裝說明書的步驟逐步組起來。
+// 模型與 three.js 都在按下「載入」之後才下載，沒按就不吃流量。
+// 選步驟會發出 build:step 事件，ManualReader 會翻到同一步的說明書頁面。
+import type { Build } from '../data/builds';
+
+interface Props { build: Build; title: string }
+const { build, title } = Astro.props;
+const { model, steps } = build;
+const last = steps[steps.length - 1];
+const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: steps.map((s) => ({ no: s.no, zh: s.zh })) };
+---
+<section class="build build-tectonic" aria-labelledby="tectonic-title">
+  <div class="build-head">
+    <h2 id="tectonic-title">數位構築</h2>
+    <span class="pp-data build-kicker">DIGITAL TECTONICS · BIM</span>
+  </div>
+
+  <div class="tv">
+    <div class="tv-stage">
+      <canvas class="tv-canvas" role="img" aria-label={`${title} BIM 模型，左右拖曳旋轉，滑過構件顯示名稱`}></canvas>
+      <div class="tv-step" aria-live="polite">
+        <span class="pp-data tv-step-label">STEP</span>
+        <span class="pp-data tv-step-no"><span class="tv-step-cur">{last.no}</span> <span class="tv-step-total">/ {last.no}</span></span>
+        <span class="tv-step-name">{last.zh}</span>
+      </div>
+      <div class="tv-gate">
+        <button type="button" class="tv-load">載入 3D 模型</button>
+        <span class="pp-data tv-gate-size">{model.size}</span>
+      </div>
+      <p class="pp-data tv-status" hidden></p>
+      <div class="tv-tip" hidden><span class="tv-tip-name"></span><span class="pp-data tv-tip-sub"></span></div>
+      <span class="pp-data tv-hint" hidden>左右拖曳旋轉 · 滑過構件看名稱</span>
+    </div>
+
+    <div class="tv-side">
+      <div class="tv-actions">
+        <button type="button" class="tv-btn tv-play" disabled>組裝</button>
+        <button type="button" class="tv-btn tv-explode" disabled aria-pressed="false">拆解</button>
+      </div>
+      <ol class="tv-steps" aria-label="組裝順序">
+        {steps.map((s, i) => (
+          <li>
+            <button type="button" class="tv-st" data-step={i + 1} aria-pressed={i === steps.length - 1 ? 'true' : 'false'}>
+              <span class="pp-data tv-st-no">{s.no}</span>
+              <span class="tv-st-zh">{s.zh}</span>
+              <span class="pp-data tv-st-count">{s.count}</span>
+              <span class="tv-st-detail">{s.detail}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p class="build-note">{model.note}</p>
+    </div>
+  </div>
+  <script type="application/json" class="tv-data" set:html={JSON.stringify(data)}></script>
+</section>
+
+<style>
+  .tv { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--pp-space-lg); }
+  .tv-stage {
+    position: relative; aspect-ratio: 4 / 3; background: var(--pp-bg-card-sub);
+    border-radius: var(--pp-radius-control); overflow: hidden;
+  }
+  .tv-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; }
+  .tv-canvas:active { cursor: grabbing; }
+  .tv-step { position: absolute; left: var(--pp-space-md); top: var(--pp-space-sm); display: flex; flex-direction: column; pointer-events: none; }
+  .tv-step-label { font-size: 11px; color: var(--pp-ink-sub); letter-spacing: 0.1em; }
+  .tv-step-no { font-size: 26px; line-height: 1.2; }
+  .tv-step-total { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .tv-step-name { font-weight: var(--pp-fw-medium); }
+  .tv-gate { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--pp-space-xs); }
+  .tv-gate-size { font-size: 11px; color: var(--pp-ink-sub); }
+  .tv-load, .tv-btn {
+    font: inherit; font-size: 14px; min-height: 44px; padding: 0 var(--pp-space-md); cursor: pointer;
+    background: var(--pp-bg-card); color: var(--pp-ink);
+    border: var(--pp-border-width) solid var(--pp-line-strong); border-radius: var(--pp-radius-control);
+  }
+  .tv-load:hover, .tv-btn:hover:not(:disabled) { border-color: var(--pp-ink); }
+  .tv-btn:disabled { color: var(--pp-ink-hint); cursor: default; }
+  .tv-btn[aria-pressed='true'] { background: var(--pp-ink); border-color: var(--pp-ink); color: var(--pp-bg-page); }
+  .tv-status { position: absolute; inset: 0; margin: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--pp-ink-sub); pointer-events: none; }
+  .tv-hint { position: absolute; left: var(--pp-space-md); bottom: var(--pp-space-sm); font-size: 11px; color: var(--pp-ink-sub); pointer-events: none; }
+  .tv-tip {
+    position: absolute; pointer-events: none; white-space: nowrap; display: flex; flex-direction: column; gap: 2px;
+    background: var(--pp-bg-card); border: var(--pp-border-width) solid var(--pp-line-strong);
+    border-radius: var(--pp-radius-control); padding: 6px 10px; font-size: var(--pp-fs-caption); line-height: 1.4;
+  }
+  .tv-stage [hidden] { display: none; }
+  .tv-tip-name { font-weight: var(--pp-fw-medium); }
+  .tv-tip-sub { font-size: 11px; color: var(--pp-ink-sub); }
+
+  .tv-side { display: flex; flex-direction: column; gap: var(--pp-space-sm); min-width: 0; }
+  .tv-actions { display: flex; gap: var(--pp-space-xs); }
+  .tv-actions .tv-btn { flex: 1 1 0; }
+  .tv-steps { list-style: none; margin: 0; padding: 0; border-top: var(--pp-border-width) solid var(--pp-ink); }
+  .tv-st {
+    font: inherit; width: 100%; text-align: left; cursor: pointer; background: transparent; color: var(--pp-ink-hint);
+    border: 0; border-bottom: var(--pp-border-width) solid var(--pp-line); border-left: 2px solid transparent;
+    display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 0 var(--pp-space-xs); align-items: baseline;
+    padding: 7px 4px;
+  }
+  .tv-st:hover { background: var(--pp-bg-card); }
+  .tv-st.is-done { color: var(--pp-ink); }
+  .tv-st[aria-pressed='true'] { color: var(--pp-ink); border-left-color: var(--pp-ink); }
+  .tv-st-no { font-size: 12px; }
+  .tv-st-zh { font-size: 14px; font-weight: var(--pp-fw-medium); }
+  .tv-st-count { font-size: 11px; color: var(--pp-ink-sub); }
+  .tv-st-detail { grid-column: 2 / 4; font-size: 12px; color: var(--pp-ink-sub); }
+
+  @media (max-width: 760px) {
+    .tv { grid-template-columns: 1fr; gap: var(--pp-space-md); }
+    .tv-stage { aspect-ratio: 1 / 1; }
+    .tv-st-detail { display: none; }
+  }
+</style>
+
+<script>
+  type Unit = { id: string; cls: string; step: number; n: number; m: { g: string; v: [number, number]; i: [number, number]; e: [number, number] }[] };
+  type Meta = { bytes: { pos: number; pad: number; idx: number; edge: number }; counts: Record<string, number>; units: Unit[] };
+  type Data = { meta: string; bin: string; labels: Record<string, string>; steps: { no: string; zh: string }[] };
+
+  const ease = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3));
+
+  function init(root: HTMLElement) {
+    const data: Data = JSON.parse(root.querySelector('.tv-data')!.textContent!);
+    const total = data.steps.length;
+    const $ = <T extends Element>(s: string) => root.querySelector<T>(s)!;
+    const stage = $<HTMLElement>('.tv-stage');
+    const canvas = $<HTMLCanvasElement>('.tv-canvas');
+    const gate = $<HTMLElement>('.tv-gate');
+    const status = $<HTMLElement>('.tv-status');
+    const hint = $<HTMLElement>('.tv-hint');
+    const tip = $<HTMLElement>('.tv-tip');
+    const playBtn = $<HTMLButtonElement>('.tv-play');
+    const explodeBtn = $<HTMLButtonElement>('.tv-explode');
+    const stepBtns = Array.from(root.querySelectorAll<HTMLButtonElement>('.tv-st'));
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let step = total;
+    let selAt = 0;
+    let playing = false;
+    let nextAt = 0;
+    const STEP_MS = 2600;
+
+    function showStep(s: number) {
+      $('.tv-step-cur').textContent = data.steps[s - 1].no;
+      $('.tv-step-name').textContent = data.steps[s - 1].zh;
+      stepBtns.forEach((b, i) => {
+        b.setAttribute('aria-pressed', String(i + 1 === s));
+        b.classList.toggle('is-done', i + 1 <= s);
+      });
+    }
+    function goStep(s: number, announce: boolean) {
+      step = s;
+      selAt = performance.now();
+      showStep(s);
+      if (announce) document.dispatchEvent(new CustomEvent('build:step', { detail: { step: s } }));
+    }
+    function stopPlay() { playing = false; playBtn.textContent = '組裝'; }
+    showStep(step);
+    stepBtns.forEach((b) => b.addEventListener('click', () => { stopPlay(); goStep(Number(b.dataset.step), true); }));
+
+    gate.querySelector('button')!.addEventListener('click', async () => {
+      gate.hidden = true;
+      status.hidden = false;
+      status.textContent = '載入 BIM 模型…';
+      try {
+        const [THREE, meta, bin] = await Promise.all([
+          import('three'),
+          fetch(data.meta).then((r) => r.json() as Promise<Meta>),
+          fetch(data.bin).then((r) => r.arrayBuffer()),
+        ]);
+        start(THREE, meta, bin);
+        status.hidden = true;
+        if (matchMedia('(hover: none)').matches) hint.textContent = '左右滑動旋轉';
+        hint.hidden = false;
+        playBtn.disabled = false;
+        explodeBtn.disabled = false;
+      } catch {
+        status.textContent = '模型載入失敗，請重新整理';
+      }
+    });
+
+    function start(THREE: typeof import('three'), meta: Meta, buf: ArrayBuffer) {
+      const css = getComputedStyle(document.documentElement);
+      const tok = (n: string) => new THREE.Color(css.getPropertyValue(n).trim());
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setClearColor(tok('--pp-bg-card-sub'), 1);
+      const scene = new THREE.Scene();
+      scene.add(new THREE.HemisphereLight(0xffffff, tok('--pp-line'), 2.4));
+      const sun = new THREE.DirectionalLight(0xffffff, 1.4);
+      sun.position.set(-6, 10, 8);
+      scene.add(sun);
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshLambertMaterial({ color: tok('--pp-bg-page') }));
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.002;
+      scene.add(ground);
+      const cam = new THREE.PerspectiveCamera(30, 4 / 3, 0.1, 200);
+
+      // 材質色取自構件材料，不屬於品牌色票
+      const COLORS: Record<string, number> = { bamboo: 0xc9b58c, wood: 0xb59d7c, steel: 0x8a8f96, rc: 0xcfcbc3, roof: 0xe2dfd8 };
+      const mats: Record<string, InstanceType<typeof THREE.MeshLambertMaterial>> = {};
+      for (const k in COLORS) mats[k] = new THREE.MeshLambertMaterial({ color: COLORS[k], flatShading: true, side: THREE.DoubleSide });
+      const hlMat = new THREE.MeshLambertMaterial({ color: tok('--pp-accent'), flatShading: true, side: THREE.DoubleSide });
+      const lineMat = new THREE.LineBasicMaterial({ color: tok('--pp-ink'), transparent: true, opacity: 0.32 });
+
+      const B = meta.bytes;
+      const P16 = new Int16Array(buf, 0, B.pos / 2);
+      const IDX = new Uint32Array(buf, B.pos + B.pad, B.idx / 4);
+      const EDG = new Uint32Array(buf, B.pos + B.pad + B.idx, B.edge / 4);
+
+      type G = InstanceType<typeof THREE.Group> & { unit: Unit; meshes: InstanceType<typeof THREE.Mesh>[]; prog: number; hl: boolean };
+      const groups: G[] = [];
+      const pickables: InstanceType<typeof THREE.Mesh>[] = [];
+      for (const u of meta.units) {
+        const g = Object.assign(new THREE.Group(), { unit: u, meshes: [] as InstanceType<typeof THREE.Mesh>[], prog: 1, hl: false });
+        for (const m of u.m) {
+          const [vs, vc] = m.v;
+          const pos = new Float32Array(vc * 3);
+          for (let i = 0; i < vc; i++) {
+            // 模型座標 mm、z 向上 → three.js m、y 向上，並把單元中心移到原點
+            pos[i * 3] = P16[(vs + i) * 3] / 1000 - 3.0;
+            pos[i * 3 + 1] = P16[(vs + i) * 3 + 2] / 1000;
+            pos[i * 3 + 2] = -(P16[(vs + i) * 3 + 1] / 1000 - 2.4);
+          }
+          const attr = new THREE.BufferAttribute(pos, 3);
+          const geo = new THREE.BufferGeometry();
+          geo.setAttribute('position', attr);
+          geo.setIndex(new THREE.BufferAttribute(IDX.slice(m.i[0], m.i[0] + m.i[1]), 1));
+          geo.computeBoundingSphere();
+          const mesh = new THREE.Mesh(geo, mats[m.g]);
+          mesh.userData = { g: m.g, unit: g };
+          g.add(mesh);
+          g.meshes.push(mesh);
+          pickables.push(mesh);
+          if (m.e[1] > 0) {
+            const lg = new THREE.BufferGeometry();
+            lg.setAttribute('position', attr);
+            lg.setIndex(new THREE.BufferAttribute(EDG.slice(m.e[0], m.e[0] + m.e[1]), 1));
+            g.add(new THREE.LineSegments(lg, lineMat));
+          }
+        }
+        scene.add(g);
+        groups.push(g as G);
+      }
+
+      let yaw = 0.72, pitch = 0.36, ex = 0, exT = 0;
+      let drag: { x: number; y: number } | null = null;
+      let hover: G | null = null;
+      let mouse: { x: number; y: number; px: number; py: number } | null = null;
+      let visible = true;
+      const ray = new THREE.Raycaster();
+
+      function resize() {
+        const r = stage.getBoundingClientRect();
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.setSize(r.width, r.height, false);
+        cam.aspect = r.width / r.height;
+        cam.updateProjectionMatrix();
+      }
+      resize();
+      new ResizeObserver(resize).observe(stage);
+      new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+
+      canvas.addEventListener('pointerdown', (e) => {
+        drag = { x: e.clientX, y: e.clientY };
+        if (e.pointerType === 'mouse') canvas.setPointerCapture(e.pointerId);
+      });
+      canvas.addEventListener('pointermove', (e) => {
+        const r = canvas.getBoundingClientRect();
+        if (drag) {
+          yaw -= (e.clientX - drag.x) * 0.006;
+          // 觸控只轉水平，直向留給頁面捲動
+          if (e.pointerType === 'mouse') pitch = Math.max(0.05, Math.min(1.35, pitch + (e.clientY - drag.y) * 0.004));
+          drag = { x: e.clientX, y: e.clientY };
+          mouse = null;
+        } else if (e.pointerType === 'mouse') {
+          mouse = { x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height, px: e.clientX - r.left, py: e.clientY - r.top };
+        }
+      });
+      const endDrag = () => { drag = null; };
+      canvas.addEventListener('pointerup', endDrag);
+      canvas.addEventListener('pointercancel', endDrag);
+      canvas.addEventListener('pointerleave', () => { drag = null; mouse = null; setHover(null); });
+
+      playBtn.addEventListener('click', () => {
+        if (playing) { stopPlay(); return; }
+        playing = true;
+        playBtn.textContent = '暫停';
+        goStep(1, true);
+        nextAt = performance.now() + STEP_MS;
+      });
+      explodeBtn.addEventListener('click', () => {
+        exT = exT ? 0 : 1;
+        explodeBtn.setAttribute('aria-pressed', String(!!exT));
+        explodeBtn.textContent = exT ? '合攏' : '拆解';
+      });
+
+      function setHover(g: G | null) {
+        if (g === hover) return;
+        hover = g;
+        if (!g) { tip.hidden = true; return; }
+        const u = g.unit;
+        $('.tv-tip-name').textContent = data.labels[u.cls] ?? u.cls;
+        $('.tv-tip-sub').textContent = `STEP ${data.steps[u.step - 1].no} · ${data.steps[u.step - 1].zh}`;
+        tip.hidden = false;
+      }
+
+      function frame() {
+        requestAnimationFrame(frame);
+        if (!visible) return;
+        const now = performance.now();
+        if (playing && now > nextAt) {
+          if (step >= total) stopPlay();
+          else { goStep(step + 1, true); nextAt = now + STEP_MS; }
+        }
+        ex += (exT - ex) * (reduce ? 1 : 0.06);
+        if (!drag && !hover && !reduce) yaw += 0.0018;
+
+        const el = (now - selAt) / 1000;
+        for (const g of groups) {
+          const u = g.unit;
+          if (u.step === step && selAt && !reduce) {
+            // 同一步的構件依序落位
+            const cnt = Math.max(1, meta.counts[String(u.step)] ?? 1);
+            g.prog = ease((el - (u.n / cnt) * (STEP_MS / 1000) * 0.6) / 0.55);
+          } else {
+            const target = u.step <= step ? 1 : 0;
+            g.prog = reduce ? target : g.prog + (target - g.prog) * 0.2;
+          }
+          g.visible = g.prog > 0.002;
+          const q = 1 - g.prog;
+          const dy = u.step === 1 ? -0.5 * q : u.step === 2 ? 0.6 * q : u.step === total ? 0 : 1.4 * q;
+          const dx = u.step === total ? 2.2 * q : 0;
+          g.position.set(dx, dy + ex * 0.95 * (u.step - 1), 0);
+          const want = g === hover;
+          if (g.hl !== want) {
+            for (const m of g.meshes) m.material = want ? hlMat : mats[m.userData.g];
+            g.hl = want;
+          }
+        }
+
+        const ty = 1.6 + ex * 3.8;
+        // 畫面比 4:3 窄時（手機的方形畫面）拉遠，讓整座棚架留在框內
+        const dist = 15 * (1 + ex * 0.55) * Math.max(1, (4 / 3) / cam.aspect);
+        cam.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, ty + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist);
+        cam.lookAt(0, ty, 0);
+
+        if (mouse && !drag) {
+          ray.setFromCamera(new THREE.Vector2(mouse.x * 2 - 1, -(mouse.y * 2 - 1)), cam);
+          const hit = ray.intersectObjects(pickables.filter((m) => m.parent!.visible), false)[0];
+          setHover(hit ? (hit.object.userData.unit as G) : null);
+          if (hover) {
+            const w = stage.clientWidth;
+            tip.style.left = `${Math.min(mouse.px + 16, w - 200)}px`;
+            tip.style.top = `${Math.max(mouse.py - 56, 8)}px`;
+          }
+        }
+        renderer.render(scene, cam);
+      }
+      selAt = 0;
+      frame();
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('.build-tectonic').forEach(init);
+</script>

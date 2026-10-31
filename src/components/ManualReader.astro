@@ -1,0 +1,137 @@
+---
+// 組裝說明書：逐頁橫向翻閱，桌機一次兩頁。步驟鈕跳到該步頁面，也會跟著數位構築選的步驟翻頁。
+// 點頁面放大（Lightbox），全本 PDF 可下載。
+import { Image, getImage } from 'astro:assets';
+import type { Build } from '../data/builds';
+
+interface Props { build: Build; title: string }
+const { build, title } = Astro.props;
+const { manual, steps } = build;
+const total = manual.pages.length;
+const pages = await Promise.all(
+  manual.pages.map(async (src, i) => ({ src, n: i + 1, full: (await getImage({ src, width: 1240, format: 'webp' })).src })),
+);
+---
+<section class="build build-manual" aria-labelledby="manual-title">
+  <div class="build-head">
+    <h2 id="manual-title">組裝說明書</h2>
+    <span class="pp-data build-kicker">ASSEMBLY MANUAL · {manual.version}</span>
+  </div>
+
+  <div class="mr-bar">
+    <div class="mr-steps" role="group" aria-label="跳到步驟">
+      {steps.map((s, i) => (
+        <button type="button" class="mr-chip pp-data" data-step={i + 1} data-page={s.page} title={`${s.no} ${s.zh}，第 ${s.page} 頁`}>{s.no}</button>
+      ))}
+    </div>
+    <a class="mr-download" href={manual.pdf} download>下載 PDF <span class="pp-data">{total} 頁 · {manual.size}</span></a>
+  </div>
+
+  <div class="mr-track" tabindex="0" aria-label={`${title}組裝說明書，共 ${total} 頁，可左右捲動`}>
+    {pages.map((p) => (
+      <figure class="mr-page" data-page={p.n}>
+        <a href={p.full} data-lb="manual" data-caption={`組裝說明書 ${p.n} / ${total}`}>
+          <Image src={p.src} alt={`組裝說明書第 ${p.n} 頁`} widths={[480, 720]} sizes="(max-width: 760px) 80vw, 460px" format="webp" loading={p.n <= 2 ? 'eager' : 'lazy'} />
+        </a>
+      </figure>
+    ))}
+  </div>
+
+  <div class="mr-nav">
+    <button type="button" class="mr-arrow mr-prev" aria-label="上一頁">←</button>
+    <span class="pp-data mr-count"><span class="mr-cur">1</span> / {total}</span>
+    <button type="button" class="mr-arrow mr-next" aria-label="下一頁">→</button>
+  </div>
+  <p class="build-note">{manual.note}</p>
+</section>
+
+<style>
+  .mr-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--pp-space-sm); margin-bottom: var(--pp-space-sm); }
+  .mr-steps { display: flex; flex-wrap: wrap; gap: 4px; }
+  .mr-chip {
+    font: inherit; font-size: 12px; min-width: 36px; min-height: 32px; cursor: pointer;
+    background: transparent; color: var(--pp-ink-sub);
+    border: var(--pp-border-width) solid var(--pp-line-strong); border-radius: var(--pp-radius-control);
+  }
+  .mr-chip:hover { border-color: var(--pp-ink); color: var(--pp-ink); }
+  .mr-chip[aria-current='step'] { background: var(--pp-ink); border-color: var(--pp-ink); color: var(--pp-bg-page); }
+  .mr-download { font-size: var(--pp-fs-caption); color: var(--pp-ink); }
+  .mr-download .pp-data { color: var(--pp-ink-sub); margin-left: 4px; }
+
+  .mr-track {
+    display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - var(--pp-space-sm)) / 2);
+    gap: var(--pp-space-sm); overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain;
+    scrollbar-width: thin; padding-bottom: var(--pp-space-xs);
+  }
+  .mr-track:focus-visible { outline: 1px solid var(--pp-ink); outline-offset: 4px; }
+  .mr-page { margin: 0; scroll-snap-align: start; }
+  .mr-page a { display: block; }
+  .mr-page img {
+    width: 100%; height: auto; display: block; background: var(--pp-bg-card);
+    border: var(--pp-border-width) solid var(--pp-line); border-radius: var(--pp-radius-control);
+  }
+  .mr-nav { display: flex; align-items: center; justify-content: center; gap: var(--pp-space-md); margin-top: var(--pp-space-xs); }
+  .mr-arrow {
+    font: inherit; width: 44px; height: 44px; cursor: pointer; background: var(--pp-bg-card); color: var(--pp-ink);
+    border: var(--pp-border-width) solid var(--pp-line-strong); border-radius: var(--pp-radius-control);
+  }
+  .mr-arrow:hover:not(:disabled) { border-color: var(--pp-ink); }
+  .mr-arrow:disabled { color: var(--pp-ink-hint); cursor: default; }
+  .mr-count { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); min-width: 64px; text-align: center; }
+
+  @media (max-width: 760px) {
+    .mr-track { grid-auto-columns: 82%; }
+  }
+</style>
+
+<script>
+  function init(root: HTMLElement) {
+    const track = root.querySelector<HTMLElement>('.mr-track')!;
+    const pages = Array.from(track.querySelectorAll<HTMLElement>('.mr-page'));
+    const chips = Array.from(root.querySelectorAll<HTMLButtonElement>('.mr-chip'));
+    const prev = root.querySelector<HTMLButtonElement>('.mr-prev')!;
+    const next = root.querySelector<HTMLButtonElement>('.mr-next')!;
+    const cur = root.querySelector<HTMLElement>('.mr-cur')!;
+    const pageOf = chips.map((c) => Number(c.dataset.page));
+    const smooth = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+
+    const first = () => {
+      const left = track.getBoundingClientRect().left;
+      let best = 0, d = Infinity;
+      pages.forEach((p, i) => { const x = Math.abs(p.getBoundingClientRect().left - left); if (x < d) { d = x; best = i; } });
+      return best;
+    };
+    const go = (i: number) => {
+      const p = pages[Math.max(0, Math.min(pages.length - 1, i))];
+      track.scrollTo({ left: p.offsetLeft - track.offsetLeft, behavior: smooth });
+    };
+    const perView = () => Math.max(1, Math.round(track.clientWidth / pages[0].getBoundingClientRect().width));
+
+    function sync() {
+      const i = first();
+      const end = Math.min(i + perView(), pages.length);
+      cur.textContent = end > i + 1 ? `${i + 1}–${end}` : String(i + 1);
+      prev.disabled = i === 0;
+      next.disabled = i + perView() >= pages.length;
+      // 目前落在哪一步：左頁之前最後開始的那一步；翻過組裝段落就不標
+      const fp = i + 1, lp = i + perView();
+      let s = -1;
+      pageOf.forEach((pg, k) => { if (pg <= fp) s = k; });
+      if (s < 0 && pageOf[0] <= lp) s = 0;
+      if (fp > pageOf[pageOf.length - 1] + 1) s = -1;
+      chips.forEach((c, k) => (k === s ? c.setAttribute('aria-current', 'step') : c.removeAttribute('aria-current')));
+    }
+    let raf = 0;
+    track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); }, { passive: true });
+    prev.addEventListener('click', () => go(first() - perView()));
+    next.addEventListener('click', () => go(first() + perView()));
+    chips.forEach((c) => c.addEventListener('click', () => go(Number(c.dataset.page) - 1)));
+    document.addEventListener('build:step', (e) => {
+      const s = (e as CustomEvent<{ step: number }>).detail.step;
+      if (pageOf[s - 1]) go(pageOf[s - 1] - 1);
+    });
+    sync();
+  }
+
+  document.querySelectorAll<HTMLElement>('.build-manual').forEach(init);
+</script>
