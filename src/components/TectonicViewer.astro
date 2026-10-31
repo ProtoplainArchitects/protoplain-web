@@ -8,7 +8,11 @@ interface Props { build: Build; title: string }
 const { build, title } = Astro.props;
 const { model, steps } = build;
 const last = steps[steps.length - 1];
-const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: steps.map((s) => ({ no: s.no, zh: s.zh })) };
+const data = {
+  meta: model.meta, bin: model.bin, labels: model.labels ?? {}, center: model.center, view: model.view,
+  drops: model.drops, gap: model.gap, smooth: model.smooth,
+  steps: steps.map((s) => ({ no: s.no, zh: s.zh })),
+};
 ---
 <section class="build build-tectonic" aria-labelledby="tectonic-title">
   <div class="build-head">
@@ -116,9 +120,13 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
 </style>
 
 <script>
-  type Unit = { id: string; cls: string; step: number; n: number; m: { g: string; v: [number, number]; i: [number, number]; e: [number, number] }[] };
+  type Unit = { id: string; cls?: string; name?: string; sub?: string; step: number; n: number; m: { g: string; v: [number, number]; i: [number, number]; e: [number, number] }[] };
   type Meta = { bytes: { pos: number; pad: number; idx: number; edge: number }; counts: Record<string, number>; units: Unit[] };
-  type Data = { meta: string; bin: string; labels: Record<string, string>; steps: { no: string; zh: string }[] };
+  type Data = {
+    meta: string; bin: string; labels: Record<string, string>; center: [number, number];
+    view: { yaw: number; pitch: number; dist: number; target: number };
+    drops: [number, number][]; gap: number; smooth: boolean; steps: { no: string; zh: string }[];
+  };
 
   const ease = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3));
 
@@ -142,6 +150,9 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
     let playing = false;
     let nextAt = 0;
     const STEP_MS = 2600;
+    // 構件多的步驟（例如竹虹的 120 個單元）放慢，看得清楚落位順序
+    let counts: Record<string, number> = {};
+    const stepMs = (s: number) => STEP_MS * ((counts[String(s)] ?? 0) > 50 ? 1.6 : 1);
 
     function showStep(s: number) {
       $('.tv-step-cur').textContent = data.steps[s - 1].no;
@@ -183,6 +194,9 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
     });
 
     function start(THREE: typeof import('three'), meta: Meta, buf: ArrayBuffer) {
+      counts = meta.counts;
+      const [CX, CY] = data.center;
+      const flatShading = !data.smooth;
       const css = getComputedStyle(document.documentElement);
       const tok = (n: string) => new THREE.Color(css.getPropertyValue(n).trim());
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -201,8 +215,8 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
       // 材質色取自構件材料，不屬於品牌色票
       const COLORS: Record<string, number> = { bamboo: 0xc9b58c, wood: 0xb59d7c, steel: 0x8a8f96, rc: 0xcfcbc3, roof: 0xe2dfd8 };
       const mats: Record<string, InstanceType<typeof THREE.MeshLambertMaterial>> = {};
-      for (const k in COLORS) mats[k] = new THREE.MeshLambertMaterial({ color: COLORS[k], flatShading: true, side: THREE.DoubleSide });
-      const hlMat = new THREE.MeshLambertMaterial({ color: tok('--pp-accent'), flatShading: true, side: THREE.DoubleSide });
+      for (const k in COLORS) mats[k] = new THREE.MeshLambertMaterial({ color: COLORS[k], flatShading, side: THREE.DoubleSide });
+      const hlMat = new THREE.MeshLambertMaterial({ color: tok('--pp-accent'), flatShading, side: THREE.DoubleSide });
       const lineMat = new THREE.LineBasicMaterial({ color: tok('--pp-ink'), transparent: true, opacity: 0.32 });
 
       const B = meta.bytes;
@@ -220,14 +234,15 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
           const pos = new Float32Array(vc * 3);
           for (let i = 0; i < vc; i++) {
             // 模型座標 mm、z 向上 → three.js m、y 向上，並把單元中心移到原點
-            pos[i * 3] = P16[(vs + i) * 3] / 1000 - 3.0;
+            pos[i * 3] = P16[(vs + i) * 3] / 1000 - CX;
             pos[i * 3 + 1] = P16[(vs + i) * 3 + 2] / 1000;
-            pos[i * 3 + 2] = -(P16[(vs + i) * 3 + 1] / 1000 - 2.4);
+            pos[i * 3 + 2] = -(P16[(vs + i) * 3 + 1] / 1000 - CY);
           }
           const attr = new THREE.BufferAttribute(pos, 3);
           const geo = new THREE.BufferGeometry();
           geo.setAttribute('position', attr);
           geo.setIndex(new THREE.BufferAttribute(IDX.slice(m.i[0], m.i[0] + m.i[1]), 1));
+          if (data.smooth) geo.computeVertexNormals();
           geo.computeBoundingSphere();
           const mesh = new THREE.Mesh(geo, mats[m.g]);
           mesh.userData = { g: m.g, unit: g };
@@ -245,7 +260,8 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
         groups.push(g as G);
       }
 
-      let yaw = 0.72, pitch = 0.36, ex = 0, exT = 0;
+      let { yaw, pitch } = data.view;
+      let ex = 0, exT = 0;
       let drag: { x: number; y: number } | null = null;
       let hover: G | null = null;
       let mouse: { x: number; y: number; px: number; py: number } | null = null;
@@ -289,7 +305,7 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
         playing = true;
         playBtn.textContent = '暫停';
         goStep(1, true);
-        nextAt = performance.now() + STEP_MS;
+        nextAt = performance.now() + stepMs(1);
       });
       explodeBtn.addEventListener('click', () => {
         exT = exT ? 0 : 1;
@@ -302,8 +318,8 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
         hover = g;
         if (!g) { tip.hidden = true; return; }
         const u = g.unit;
-        $('.tv-tip-name').textContent = data.labels[u.cls] ?? u.cls;
-        $('.tv-tip-sub').textContent = `STEP ${data.steps[u.step - 1].no} · ${data.steps[u.step - 1].zh}`;
+        $('.tv-tip-name').textContent = u.name ?? data.labels[u.cls ?? ''] ?? u.cls ?? '';
+        $('.tv-tip-sub').textContent = `STEP ${data.steps[u.step - 1].no} · ${u.sub ?? data.steps[u.step - 1].zh}`;
         tip.hidden = false;
       }
 
@@ -313,7 +329,7 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
         const now = performance.now();
         if (playing && now > nextAt) {
           if (step >= total) stopPlay();
-          else { goStep(step + 1, true); nextAt = now + STEP_MS; }
+          else { goStep(step + 1, true); nextAt = now + stepMs(step); }
         }
         ex += (exT - ex) * (reduce ? 1 : 0.06);
         if (!drag && !hover && !reduce) yaw += 0.0018;
@@ -324,16 +340,15 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
           if (u.step === step && selAt && !reduce) {
             // 同一步的構件依序落位
             const cnt = Math.max(1, meta.counts[String(u.step)] ?? 1);
-            g.prog = ease((el - (u.n / cnt) * (STEP_MS / 1000) * 0.6) / 0.55);
+            g.prog = ease((el - (u.n / cnt) * (stepMs(u.step) / 1000) * 0.6) / 0.55);
           } else {
             const target = u.step <= step ? 1 : 0;
             g.prog = reduce ? target : g.prog + (target - g.prog) * 0.2;
           }
           g.visible = g.prog > 0.002;
           const q = 1 - g.prog;
-          const dy = u.step === 1 ? -0.5 * q : u.step === 2 ? 0.6 * q : u.step === total ? 0 : 1.4 * q;
-          const dx = u.step === total ? 2.2 * q : 0;
-          g.position.set(dx, dy + ex * 0.95 * (u.step - 1), 0);
+          const [dx, dy] = data.drops[u.step - 1] ?? [0, 1.4];
+          g.position.set(dx * q, dy * q + ex * data.gap * (u.step - 1), 0);
           const want = g === hover;
           if (g.hl !== want) {
             for (const m of g.meshes) m.material = want ? hlMat : mats[m.userData.g];
@@ -341,9 +356,9 @@ const data = { meta: model.meta, bin: model.bin, labels: model.labels, steps: st
           }
         }
 
-        const ty = 1.6 + ex * 3.8;
-        // 畫面比 4:3 窄時（手機的方形畫面）拉遠，讓整座棚架留在框內
-        const dist = 15 * (1 + ex * 0.55) * Math.max(1, (4 / 3) / cam.aspect);
+        const ty = data.view.target + ex * data.gap * (total - 1) * 0.5;
+        // 畫面比 4:3 窄時（手機的方形畫面）拉遠，讓整座構架留在框內
+        const dist = data.view.dist * (1 + ex * 0.55) * Math.max(1, (4 / 3) / cam.aspect);
         cam.position.set(Math.sin(yaw) * Math.cos(pitch) * dist, ty + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist);
         cam.lookAt(0, ty, 0);
 
