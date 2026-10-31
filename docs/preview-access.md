@@ -51,7 +51,7 @@
 
 ## 五、注意事項
 
-- 正式網域接上之前，Production 還沒有設 `PUBLIC_INDEXABLE=true`，程式裡的防呆在這段期間不起作用。這時把 `PUBLIC_SHOW_DRAFTS` 誤設到 Production，draft 就會出現在正式站。設定前務必確認選的是 Preview。
+- Production 自 2026-10-31 正式網域切換起已設 `PUBLIC_INDEXABLE=true`，程式裡的防呆會讓正式建置一律排除 draft。設定前仍要確認選的是 Preview。
 - Access 只管「誰能開網址」。draft 內容本身仍要遵守 CLAUDE.md 的資料保護規範，不能因為有登入牆就放業主個資。
 - 之後如果搬離 Cloudflare，新平台要先有同等的預覽存取限制，才能沿用 `PUBLIC_SHOW_DRAFTS`。
 
@@ -59,6 +59,8 @@
 
 | 日期 | 項目 | 結果 | 操作人 |
 |---|---|---|---|
+| 2026-10-31 | Preview 設定 `PUBLIC_SHOW_DRAFTS`（本手冊訂定前，未加 Access） | 06:48 設定，預覽網址公開顯示 draft | Claude Code（使用者同意） |
+| 2026-10-31 | 依本手冊撤除 Preview 的 `PUBLIC_SHOW_DRAFTS` | 08:08 已移除並重新整理確認；之後的預覽建置不含 draft。**06:48–08:08 之間建置的預覽部署仍含 draft**，需在 Deployments 刪除或等 Access 生效 | Claude Code（使用者同意） |
 | | Enable access policy | | |
 | | 分支別名實測 | | |
 | | Preview 設定 `PUBLIC_SHOW_DRAFTS` | | |
