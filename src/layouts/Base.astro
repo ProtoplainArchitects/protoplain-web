@@ -1,6 +1,7 @@
 ---
 import '../styles/pp-tokens.css';
 import '../styles/site.css';
+import logo from '../assets/pp-logo-calligraphy.png';
 
 interface Props {
   title?: string;
@@ -51,7 +52,7 @@ const path = Astro.url.pathname;
   <body>
     <header class="site-header">
       <a class="brand" href={home}>
-        <span class="brand-zh">初樸建築師事務所</span>
+        <span class="brand-logo" role="img" aria-label="初樸建築師事務所" style={`--logo: url(${logo.src})`}></span>
         <span class="brand-en">ProtoPlain Architects</span>
       </a>
       <nav aria-label={lang === 'en' ? 'Main' : '主要導覽'}>
@@ -68,5 +69,26 @@ const path = Astro.url.pathname;
       <span>© {new Date().getFullYear()} {lang === 'en' ? 'ProtoPlain Architects' : '初樸建築師事務所'}</span>
       <span>{lang === 'en' ? 'Taichung, Taiwan' : '臺中・豐原'}</span>
     </footer>
+    <script>
+      // 有 data-reveal 的區塊第一次進入畫面時浮現；沒有 JS 時維持原樣直接顯示
+      document.documentElement.classList.add('js');
+      const io = new IntersectionObserver(
+        (entries) => entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          const el = e.target as HTMLElement;
+          // 同一批進畫面的列依序錯開一點，最多 0.3 秒
+          el.style.transitionDelay = `${Math.min(Number(el.dataset.i ?? 0) * 40, 300)}ms`;
+          el.classList.add('is-in');
+          io.unobserve(el);
+        }),
+        { rootMargin: '0px 0px -8% 0px' },
+      );
+      let batch = 0;
+      document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        el.dataset.i = String(r.top < innerHeight ? batch++ : 0);
+        io.observe(el);
+      });
+    </script>
   </body>
 </html>

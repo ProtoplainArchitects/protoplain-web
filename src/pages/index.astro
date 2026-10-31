@@ -1,23 +1,19 @@
 ---
 import Base from '../layouts/Base.astro';
-import WorkGrid from '../components/WorkGrid.astro';
-import HeroAxes from '../components/HeroAxes.astro';
+import AxisColumns from '../components/AxisColumns.astro';
 import DotField from '../components/DotField.astro';
 import { getWorks } from '../lib/works';
 
-const all = await getWorks();
-const works = all.filter((w) => w.data.kind === 'work').slice(0, 6);
+const works = await getWorks();
 ---
 <Base lang="zh" description="初樸建築師事務所，臺中豐原。竹、木、土自然材料的當代構築。">
-  <!-- 首頁主視覺試作：方向二｜雙軸並置（原樣板 HeroB） -->
-  <h1 class="visually-hidden">竹、木、土自然材料的當代構築</h1>
-  <HeroAxes works={all} />
-  <DotField />
-  <section>
-    <div class="section-head">
-      <h2>近期作品</h2>
-      <a href="/works/">全部作品</a>
-    </div>
-    <WorkGrid works={works} lang="zh" />
+  <!-- 首頁 C 案試作｜雙軸延續：兩欄各自輪播，下接作品清單；最下方為歷年專案微塵 -->
+  <section class="home-intro" data-reveal>
+    <h1>竹、木、土自然材料的當代構築</h1>
+    <p>形體之外的光與氣，建築之外的時間與生命。</p>
   </section>
+  <AxisColumns works={works} />
+  <div class="home-dots" data-reveal>
+    <DotField />
+  </div>
 </Base>

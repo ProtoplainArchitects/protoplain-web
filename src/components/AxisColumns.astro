@@ -1,0 +1,163 @@
+---
+// 首頁 C 案試作｜雙軸延續：人文構築、自然構築左右兩欄，各自慢速輪播作品，下接該軸作品清單。
+// 兩張照片隨滿版版心並排、頂端對齊，文字與照片外緣對齊。手機疊成一欄。沒有分軸的作品與展覽放在兩欄下方。
+import { Image } from 'astro:assets';
+import { axisLabel, workUrl, type Work } from '../lib/works';
+
+interface Props { works: Work[] }
+const { works } = Astro.props;
+
+const AXES = ['人文構築', '自然構築'] as const;
+const cols = AXES.map((axis) => ({
+  axis,
+  tag: axisLabel[axis].en.toUpperCase(),
+  list: works.filter((w) => w.data.kind === 'work' && w.data.axis === axis),
+}));
+const others = works.filter((w) => !w.data.axis || w.data.kind === 'exhibition');
+---
+<section class="ax" aria-label="作品兩軸">
+  {cols.map((c, ci) => {
+    const slides = c.list.filter((w) => w.data.cover);
+    return (
+      <div class="ax-col" data-reveal>
+        <div class="ax-head ax-pad">
+          <span class="pp-data ax-tag">{c.tag}</span>
+          <h2>{c.axis}</h2>
+        </div>
+        <div class="ax-show" data-carousel>
+          <div class="ax-frame">
+            {slides.map((w, i) => (
+              <a class:list={['ax-slide', i === 0 && 'is-on']} href={workUrl(w.id, 'zh')} tabindex={i === 0 ? 0 : -1} aria-hidden={i === 0 ? undefined : 'true'}>
+                <Image
+                  src={w.data.cover!}
+                  alt={w.data.title}
+                  widths={[640, 960, 1260]}
+                  sizes="(max-width: 760px) 100vw, 50vw"
+                  format="webp"
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                />
+              </a>
+            ))}
+          </div>
+          <div class="ax-meta ax-pad">
+          <div class="ax-cap">
+            {slides.map((w, i) => (
+              <p class:list={['ax-cap-item', i === 0 && 'is-on']}>
+                <span>{w.data.title}</span><span class="pp-data">{w.data.year}</span>
+              </p>
+            ))}
+          </div>
+          <div class="ax-dots" role="group" aria-label={`${c.axis}輪播`}>
+            {slides.map((w, i) => (
+              <button type="button" aria-label={w.data.title} aria-current={i === 0 ? 'true' : 'false'}><i></i></button>
+            ))}
+          </div>
+          </div>
+        </div>
+        <ol class="ax-list ax-pad">
+          {c.list.map((w) => (
+            <li><a href={workUrl(w.id, 'zh')}><span class="pp-data">{w.data.year}</span><span>{w.data.title}</span></a></li>
+          ))}
+        </ol>
+      </div>
+    );
+  })}
+</section>
+
+{others.length > 0 && (
+  <section class="ax-others" aria-labelledby="ax-others-title" data-reveal>
+    <div class="ax-head">
+      <span class="pp-data ax-tag">EXHIBITIONS &amp; OTHERS</span>
+      <h2 id="ax-others-title">展覽與其他作品</h2>
+    </div>
+    <ol class="ax-list ax-list--wide">
+      {others.map((w) => (
+        <li><a href={workUrl(w.id, 'zh')}><span class="pp-data">{w.data.year}</span><span>{w.data.title}</span><span class="ax-kind">{w.data.kind === 'exhibition' ? '展覽' : '作品'}</span></a></li>
+      ))}
+    </ol>
+  </section>
+)}
+
+<style>
+  /* 兩張照片之間只留 --pp-space-xs；文字靠照片外緣，內側另留 --pp-space-lg 避免兩欄字貼在一起 */
+  .ax { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--pp-space-xs); align-items: start; }
+  .ax-col:first-child .ax-pad { padding-right: var(--pp-space-lg); }
+  .ax-col:last-child .ax-pad { padding-left: var(--pp-space-lg); }
+  .ax-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--pp-space-sm); margin-bottom: var(--pp-space-sm); }
+  .ax-head h2 { margin: 0; }
+  .ax-tag { font-size: 10px; letter-spacing: 0.12em; color: var(--pp-ink-sub); order: 2; }
+
+  .ax-frame { position: relative; width: 100%; aspect-ratio: 1; max-height: 78vh; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .ax-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s ease; }
+  .ax-slide.is-on { opacity: 1; z-index: 1; }
+  .ax-slide img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.04); transition: transform 7s linear; }
+  .ax-slide.is-on img { transform: scale(1); }
+
+  .ax-cap { position: relative; height: 28px; margin-top: var(--pp-space-xs); }
+  .ax-cap-item { position: absolute; inset: 0; margin: 0; display: flex; justify-content: space-between; gap: var(--pp-space-sm); font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); opacity: 0; transition: opacity 0.6s ease; }
+  .ax-cap-item span:first-child { color: var(--pp-ink); }
+  .ax-cap-item.is-on { opacity: 1; }
+
+  .ax-dots { display: flex; gap: 4px; margin-bottom: var(--pp-space-lg); }
+  .ax-dots button { flex: 1; height: 16px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
+  .ax-dots i { display: block; width: 100%; height: 1px; background: var(--pp-line); transition: background 0.3s; }
+  .ax-dots button[aria-current='true'] i { background: var(--pp-ink); }
+
+  .ax-list { list-style: none; margin: 0; padding: 0; border-top: var(--pp-border-width) solid var(--pp-line); }
+  .ax-list a {
+    display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: var(--pp-space-sm); align-items: baseline;
+    padding: 10px 0; color: var(--pp-ink); border-bottom: var(--pp-border-width) solid var(--pp-line);
+    transition: border-color 0.25s, padding-left 0.25s;
+  }
+  .ax-list a:hover { text-decoration: none; border-bottom-color: var(--pp-ink); padding-left: 6px; }
+  .ax-list .pp-data, .ax-kind { color: var(--pp-ink-sub); }
+  .ax-kind { font-size: var(--pp-fs-caption); }
+
+  .ax-others { margin-top: calc(var(--pp-space-xl) * 1.5); }
+  .ax-list--wide { columns: 2; column-gap: var(--pp-space-xl); border-top: 0; }
+  .ax-list--wide li { break-inside: avoid; border-top: var(--pp-border-width) solid var(--pp-line); margin-top: -0.5px; }
+
+  @media (max-width: 760px) {
+    .ax { grid-template-columns: 1fr; gap: calc(var(--pp-space-xl) * 1.2); }
+    .ax .ax-col .ax-pad { padding: 0; }
+    .ax-frame { aspect-ratio: 4 / 3; max-height: none; }
+    .ax-list--wide { columns: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ax-slide, .ax-cap-item, .ax-slide img { transition: none; }
+    .ax-slide img { transform: none; }
+  }
+</style>
+
+<script>
+  // 每 6 秒換一張，兩欄錯開 3 秒；滑過或聚焦時暫停，離開畫面時停止；系統設定減少動態時不自動換
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((root, ci) => {
+    const slides = Array.from(root.querySelectorAll<HTMLAnchorElement>('.ax-slide'));
+    const caps = Array.from(root.querySelectorAll<HTMLElement>('.ax-cap-item'));
+    const dots = Array.from(root.querySelectorAll<HTMLButtonElement>('.ax-dots button'));
+    if (slides.length < 2) return;
+    let i = 0, timer = 0, paused = false, visible = true;
+    const go = (n: number) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => {
+        s.classList.toggle('is-on', k === i);
+        s.tabIndex = k === i ? 0 : -1;
+        if (k === i) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true');
+      });
+      caps.forEach((c, k) => c.classList.toggle('is-on', k === i));
+      dots.forEach((d, k) => d.setAttribute('aria-current', String(k === i)));
+    };
+    const schedule = (delay = 6000) => {
+      clearTimeout(timer);
+      if (!reduce && !paused && visible) timer = window.setTimeout(() => { go(i + 1); schedule(); }, delay);
+    };
+    dots.forEach((d, k) => d.addEventListener('click', () => { go(k); schedule(); }));
+    root.addEventListener('mouseenter', () => { paused = true; clearTimeout(timer); });
+    root.addEventListener('mouseleave', () => { paused = false; schedule(); });
+    root.addEventListener('focusin', () => { paused = true; clearTimeout(timer); });
+    root.addEventListener('focusout', () => { paused = false; schedule(); });
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) schedule(); else clearTimeout(timer); }).observe(root);
+    schedule(6000 + ci * 3000);
+  });
+</script>
