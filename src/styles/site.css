@@ -1,10 +1,21 @@
 /* 站點版面：只用 pp-tokens 變數，不寫死色碼；無陰影、無漸層 */
 
-body { min-height: 100vh; display: flex; flex-direction: column; }
-main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(--pp-space-md) var(--pp-space-xl); }
+/* 首頁改版試作：頁面底色改白（沿用 --pp-bg-card），偏離 pp-brand 的清水模灰，待主持建築師確認 */
+body { min-height: 100vh; display: flex; flex-direction: column; background: var(--pp-bg-card); }
+/* 字級改版試作：整站縮小，只靠尺寸、灰階與留白分層；偏離 pp-brand 字級表，待主持建築師確認 */
+:root {
+  --pp-fs-h1: 20px; --pp-fs-h2: 15px; --pp-fs-h3: 13px;
+  --pp-fs-body: 13px; --pp-fs-caption: 11px; --pp-fs-data: 11px;
+  --pp-lh-h1: 1.5; --pp-lh-body: 1.8;
+}
+body { letter-spacing: 0.02em; }
+h1 { font-weight: var(--pp-fw-regular); }
+
+/* 版心改滿版：頁首、內容、頁尾都只留左右 --pp-space-md，文字與首頁照片邊緣對齊 */
+main { flex: 1; width: 100%; padding: 0 var(--pp-space-md) var(--pp-space-xl); }
 
 .site-header, .site-footer {
-  width: 100%; max-width: 1200px; margin: 0 auto;
+  width: 100%;
   display: flex; justify-content: space-between; align-items: center; gap: var(--pp-space-md);
   padding: var(--pp-space-md);
 }
@@ -13,7 +24,11 @@ main { flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(-
 
 .brand { color: var(--pp-ink); display: flex; flex-direction: column; line-height: 1.3; }
 .brand:hover { color: var(--pp-ink); text-decoration: none; }
-.brand-zh { font-weight: var(--pp-fw-medium); }
+/* 書法 logo 當遮罩用，墨色跟著 --pp-ink 走；原檔 686×96 */
+.brand-logo {
+  display: block; height: 22px; aspect-ratio: 686 / 96; margin-bottom: 4px;
+  background: var(--pp-ink); -webkit-mask: var(--logo) left center / contain no-repeat; mask: var(--logo) left center / contain no-repeat;
+}
 .brand-en { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); letter-spacing: 0.04em; }
 
 nav { display: flex; gap: var(--pp-space-md); align-items: center; }
@@ -25,7 +40,7 @@ nav a.lang {
 }
 
 .hero { padding: var(--pp-space-xl) 0 calc(var(--pp-space-xl) * 1.5); }
-.hero h1 { font-size: clamp(28px, 4.2vw, 44px); line-height: 1.35; letter-spacing: 0.02em; margin-bottom: var(--pp-space-md); }
+.hero h1 { margin-bottom: var(--pp-space-md); }
 
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -67,7 +82,6 @@ nav a.lang {
 
 .work { max-width: 960px; margin: 0 auto; }
 .work-head { margin-bottom: var(--pp-space-lg); }
-.work-head h1 { font-size: clamp(24px, 3vw, 32px); }
 .work-sub { color: var(--pp-ink-sub); }
 .work-facts { display: flex; gap: var(--pp-space-lg); margin: 0; }
 .work-facts dt { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); }
@@ -84,4 +98,24 @@ nav a.lang {
   .site-header { margin-bottom: var(--pp-space-lg); align-items: flex-start; }
   nav { flex-wrap: wrap; justify-content: flex-end; gap: var(--pp-space-xs) var(--pp-space-sm); }
   .hero { padding: var(--pp-space-md) 0 var(--pp-space-xl); }
+}
+
+/* 首頁（C 案試作） */
+.home-intro { padding: var(--pp-space-lg) 0 var(--pp-space-xl); max-width: 720px; }
+.home-intro h1 { margin-bottom: var(--pp-space-xs); }
+.home-intro p { color: var(--pp-ink-sub); margin: 0; }
+.home-dots { margin-top: calc(var(--pp-space-xl) * 2); }
+
+/* 輕微動態：換頁淡入淡出、區塊第一次進畫面時浮現。系統設定減少動態時全部關閉 */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.2s; }
+.js [data-reveal] { opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.js [data-reveal].is-in { opacity: 1; transform: none; }
+.tile-img img, .work-cover img { transition: opacity 0.2s, transform 0.4s ease; }
+.tile a:hover .tile-img img { transform: scale(1.02); }
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .js [data-reveal] { opacity: 1; transform: none; transition: none; }
+  .tile a:hover .tile-img img { transform: none; }
 }
