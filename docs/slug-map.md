@@ -41,10 +41,10 @@
 | 填冶｜第二屆礦山藝術季 | https://protoplain.format.com/2021-minearts-festival | https://protoplain.format.com/2021-minearts-festival-en | `filling-the-void-2021` | 有 | — | 已核可 |
 | 鑛客｜第一屆礦山藝術季 | https://protoplain.format.com/2020-minearts-festival | https://protoplain.format.com/2020-minearts-festival-en | `the-miner-2020` | 有 | — | 已核可 |
 
-## 新增作品（待核可）
+## 新增作品
 
 舊站沒有頁面的作品，舊站欄位填「—」。
 
 | 作品 | 舊站中文 | 舊站英文 | 新 slug | 英文頁 | 待處理 | 核可 |
 |---|---|---|---|---|---|---|
-| 竹輕亭｜常民竹小屋 | — | — | `bamboo-light-pavilion` | 無 | 2026-10-31 提出 | 待核可 |
+| 竹輕亭｜簇樂 | — | — | `bamboo-light-pavilion` | 無 | — | 2026-10-31 核可 |
