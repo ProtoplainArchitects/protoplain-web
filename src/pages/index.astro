@@ -7,10 +7,12 @@ import { getWorks } from '../lib/works';
 const works = await getWorks();
 ---
 <Base lang="zh" description="初樸建築師事務所，臺中豐原。竹、木、土自然材料的當代構築。">
-  <!-- 首頁 C 案試作｜雙軸延續：兩欄各自輪播，下接作品清單；最下方為歷年專案微塵 -->
-  <section class="home-intro" data-reveal>
-    <h1>竹、木、土自然材料的當代構築</h1>
-    <p>形體之外的光與氣，建築之外的時間與生命。</p>
+  <!-- 首頁｜開場短文三段，接雙軸延續：兩欄各自輪播，下接作品清單；最下方為歷年專案微塵 -->
+  <section class="home-intro" aria-labelledby="home-title">
+    <h1 id="home-title" class="visually-hidden">初樸建築師事務所</h1>
+    <p data-reveal>在可見之外，<br />仍有暗物質與暗能量，<br />無形卻支撐著萬物的運行。</p>
+    <p data-reveal>初樸關注的，也是這「之外」──<br />形體之外的光與氣，<br />建築之外的時間與生命。</p>
+    <p data-reveal>在自然與人造之間，<br />我們以初樸之心，<br />尋回建築的本意。</p>
   </section>
   <AxisColumns works={works} />
   <div class="home-dots" data-reveal>

@@ -22,11 +22,11 @@ const span = `${Math.min(...years)}–${Math.max(...years)}`;
 ---
 <section class="dots" aria-labelledby="dots-title">
   <div class="section-head">
-    <h2 id="dots-title">{data.dots.length} 件專案</h2>
+    <h2 id="dots-title">歷年專案</h2>
     <span class="dots-meta"><span class="pp-data dots-span">{span}</span><button type="button" class="dots-replay">重播</button></span>
   </div>
   <div class="dots-stage" style={`aspect-ratio: ${data.aspect}`}>
-    <canvas class="dots-canvas" role="img" aria-label={`事務所 ${span} 年間 ${data.dots.length} 件專案的點狀圖，每一點是一件專案`}></canvas>
+    <canvas class="dots-canvas" role="img" aria-label={`事務所 ${span} 年間歷年專案的點狀圖，每一點是一件專案`}></canvas>
     <div class="dots-tip" hidden></div>
   </div>
   <p class="dots-note">每一點是一件專案，重量愈高點愈大、愈濃。滑過看年份，已上站的作品可點進作品頁。</p>

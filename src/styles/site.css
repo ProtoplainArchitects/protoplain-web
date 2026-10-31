@@ -101,9 +101,10 @@ nav a.lang {
 }
 
 /* 首頁（C 案試作） */
-.home-intro { padding: var(--pp-space-lg) 0 var(--pp-space-xl); max-width: 720px; }
-.home-intro h1 { margin-bottom: var(--pp-space-xs); }
-.home-intro p { color: var(--pp-ink-sub); margin: 0; }
+/* 開場短文：三段各自浮現，只用字距與行距，不放大字 */
+.home-intro { padding: var(--pp-space-lg) 0 calc(var(--pp-space-xl) * 1.5); }
+.home-intro p { font-size: var(--pp-fs-h2); line-height: 2.1; letter-spacing: 0.08em; color: var(--pp-ink); margin: 0 0 var(--pp-space-lg); }
+.home-intro p:last-child { margin-bottom: 0; }
 .home-dots { margin-top: calc(var(--pp-space-xl) * 2); }
 
 /* 輕微動態：換頁淡入淡出、區塊第一次進畫面時浮現。系統設定減少動態時全部關閉 */
