@@ -74,7 +74,7 @@ docs/                       slug 對照表、內容待處理清單
 - 影片與大型檔案不進 repo，網址一律用本所網域（例如 `media.protoplain.com`）或 YouTube／Vimeo 嵌入，不直接寫儲存服務的原始網址。
 - 建置設定只依賴三項：建置指令 `npm run build`、輸出資料夾 `dist`、Node 版本（`.nvmrc`）。新增環境變數要同步寫進本節。環境變數只有兩個：
   - `PUBLIC_INDEXABLE=true`：只設在 Production，開放搜尋引擎索引。
-  - `PUBLIC_SHOW_DRAFTS=true`：只設在 Preview，讓 PR 預覽網址顯示 draft 作品供審稿。**必須先依 `docs/preview-access.md` 替預覽網址加上 Cloudflare Access 並驗證通過，才能設定**；預覽網址預設公開，draft 裡有標題含業主姓氏的作品。`PUBLIC_INDEXABLE=true` 的建置一律不顯示 draft，但正式網域切換前 Production 還沒有這個變數，這段期間誤設到 Production 仍會發布 draft。
+  - `PUBLIC_SHOW_DRAFTS=true`：只設在 Preview，讓 PR 預覽網址顯示 draft 作品供審稿。**必須先依 `docs/preview-access.md` 替預覽網址加上 Cloudflare Access 並驗證通過，才能設定**；預覽網址預設公開，draft 裡有標題含業主姓氏的作品。`PUBLIC_INDEXABLE=true` 的建置一律不顯示 draft；Production 自 2026-10-31 正式網域切換起已設定這個變數，誤設也不會發布。
 
 ## 給 Claude Code 的工作守則
 
