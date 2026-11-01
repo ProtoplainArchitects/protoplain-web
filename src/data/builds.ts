@@ -21,6 +21,8 @@ export interface GalleryItem {
   group: string;
 }
 
+export type GalleryLayout = 'grid' | 'editorial';
+
 export interface Build {
   model: {
     meta: string;
@@ -50,6 +52,8 @@ export interface Build {
     note: string;
   };
   gallery: GalleryItem[];
+  /** 分組版型；沒列的分組用 grid（等大格狀）。editorial：大小交錯、保留原比例，適合完工照 */
+  layouts?: Record<string, GalleryLayout>;
   /** 照片區底部的攝影署名 */
   credit?: string;
 }
@@ -143,6 +147,7 @@ export const builds: Record<string, Build> = {
       { src: bbp[8], caption: '屋簷轉角', kind: 'photo', group: '細部' },
       { src: bbp[9], caption: '由下往上看竹虹單元', kind: 'photo', group: '細部' },
     ],
+    layouts: { 完工: 'editorial' },
     credit: '攝影：揅空間、初樸建築師事務所',
   },
 };
