@@ -10,9 +10,15 @@ const items = await Promise.all(
 );
 const groups = [...new Set(items.map((g) => g.group))].map((name) => {
   const list = items.filter((g) => g.group === name);
-  return { name, list, wide: list.every((g) => g.src.width / g.src.height > 1.6) };
+  return { name, list, layout: build.layouts?.[name] ?? 'grid', wide: list.every((g) => g.src.width / g.src.height > 1.6) };
 });
 const hasRender = items.some((g) => g.kind === 'render');
+
+// editorial：依序套用這組節奏（整欄、一小一大、偏右附說明、整欄），超過五張從頭循環。不裁切，保留原比例
+const rhythm = ['full', 'pair-s', 'pair-l', 'aside', 'full'] as const;
+const edSizes = { full: '960px', 'pair-s': '400px', 'pair-l': '560px', aside: '640px' };
+// 不放大超過原圖寬度
+const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).concat(w);
 ---
 <section class="build build-gallery" aria-labelledby="gallery-title">
   <div class="build-head">
@@ -23,6 +29,22 @@ const hasRender = items.some((g) => g.kind === 'render');
   {groups.map((grp) => (
     <>
       <h3 class="pg-sub">{grp.name}</h3>
+      {grp.layout === 'editorial' ? (
+        <ul class="pg-ed">
+          {grp.list.map((p, i) => {
+            const slot = rhythm[i % rhythm.length];
+            const label = p.kind === 'render' ? `情境模擬：${p.caption}` : p.caption;
+            return (
+              <li class={`pg-${slot}`}>
+                <a href={p.full} data-lb="gallery" data-caption={label}>
+                  <Image src={p.src} alt={`${title}：${label}`} widths={edWidths(p.src.width)} sizes={`(max-width: 760px) 100vw, ${edSizes[slot]}`} format="webp" loading="lazy" />
+                </a>
+                <p class="pg-cap">{p.caption}</p>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
       <ul class:list={['pg-grid', grp.wide && 'pg-wide']}>
         {grp.list.map((p) => {
           const label = p.kind === 'render' ? `情境模擬：${p.caption}` : p.caption;
@@ -36,6 +58,7 @@ const hasRender = items.some((g) => g.kind === 'render');
           );
         })}
       </ul>
+      )}
     </>
   ))}
 
@@ -57,8 +80,31 @@ const hasRender = items.some((g) => g.kind === 'render');
   .pg-grid a:hover img { opacity: 0.88; }
   .pg-cap { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); margin: 4px 0 0; }
 
+  /* editorial：12 欄，列距放大留出呼吸；圖片保留原比例 */
+  .pg-ed {
+    list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0;
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--pp-space-xl) var(--pp-space-md);
+  }
+  .pg-ed a { display: block; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .pg-ed img { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
+  .pg-ed a:hover img { opacity: 0.88; }
+  .pg-full { grid-column: 1 / -1; }
+  /* 一小一大並排，小的往下沉，兩張底緣不齊 */
+  .pg-pair-s { grid-column: 1 / span 5; align-self: end; }
+  .pg-pair-l { grid-column: 6 / -1; }
+  /* 偏右的一張，說明放在左側留白的底部 */
+  .pg-aside { grid-column: 1 / -1; display: grid; grid-template-columns: 4fr 8fr; gap: var(--pp-space-md); }
+  .pg-aside a { grid-column: 2; grid-row: 1; }
+  .pg-aside .pg-cap { grid-column: 1; grid-row: 1; align-self: end; text-align: right; margin: 0; }
+
   @media (max-width: 760px) {
     .pg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pg-wide { grid-template-columns: 1fr; }
+    /* 手機單欄；小圖與偏右圖縮窄並左右錯開，留一點節奏 */
+    .pg-ed { grid-template-columns: 1fr; row-gap: var(--pp-space-lg); }
+    .pg-ed li { grid-column: 1; }
+    .pg-pair-s { width: 82%; margin-left: auto; }
+    .pg-aside { display: block; width: 82%; }
+    .pg-aside .pg-cap { text-align: left; margin-top: 4px; }
   }
 </style>
