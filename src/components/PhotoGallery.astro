@@ -17,6 +17,7 @@ const hasRender = items.some((g) => g.kind === 'render');
 // editorial：依序套用這組節奏（整欄、一小一大、偏右附說明、整欄），超過五張從頭循環。不裁切，保留原比例
 const rhythm = ['full', 'pair-s', 'pair-l', 'aside', 'full'] as const;
 const edSizes = { full: '960px', 'pair-s': '400px', 'pair-l': '560px', aside: '640px' };
+// sequence：一張一列依時間往下，左側為步驟序號與說明；直式照片收窄，不裁切
 // 不放大超過原圖寬度
 const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).concat(w);
 ---
@@ -29,7 +30,22 @@ const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).conc
   {groups.map((grp) => (
     <>
       <h3 class="pg-sub">{grp.name}</h3>
-      {grp.layout === 'editorial' ? (
+      {grp.layout === 'sequence' ? (
+        <ol class="pg-seq">
+          {grp.list.map((p, i) => {
+            const tall = p.src.height > p.src.width;
+            const label = p.kind === 'render' ? `情境模擬：${p.caption}` : p.caption;
+            return (
+              <li class:list={[tall && 'pg-tall']}>
+                <p class="pg-step"><span class="pp-data pg-no">{String(i + 1).padStart(2, '0')}</span>{p.caption}</p>
+                <a href={p.full} data-lb="gallery" data-caption={label}>
+                  <Image src={p.src} alt={`${title}：${label}`} widths={edWidths(p.src.width)} sizes={tall ? '(max-width: 760px) 75vw, 420px' : '(max-width: 760px) 100vw, 700px'} format="webp" loading="lazy" />
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      ) : grp.layout === 'editorial' ? (
         <ul class="pg-ed">
           {grp.list.map((p, i) => {
             const slot = rhythm[i % rhythm.length];
@@ -97,7 +113,24 @@ const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).conc
   .pg-aside a { grid-column: 2; grid-row: 1; }
   .pg-aside .pg-cap { grid-column: 1; grid-row: 1; align-self: end; text-align: right; margin: 0; }
 
+  /* sequence：每一步一列，細線分隔；左 3 欄步驟、右 9 欄照片 */
+  .pg-seq { list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0; }
+  .pg-seq li {
+    display: grid; grid-template-columns: 3fr 9fr; gap: var(--pp-space-md);
+    padding: var(--pp-space-lg) 0; border-top: var(--pp-border-width) solid var(--pp-line);
+  }
+  .pg-seq li:first-child { padding-top: var(--pp-space-xs); border-top: 0; }
+  .pg-step { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .pg-no { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); }
+  .pg-seq a { display: block; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .pg-tall a { max-width: 420px; }
+  .pg-seq img { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
+  .pg-seq a:hover img { opacity: 0.88; }
+
   @media (max-width: 760px) {
+    .pg-seq li { display: block; padding: var(--pp-space-md) 0; }
+    .pg-step { flex-direction: row; gap: var(--pp-space-xs); margin-bottom: var(--pp-space-xs); }
+    .pg-tall a { max-width: none; width: 75%; }
     .pg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pg-wide { grid-template-columns: 1fr; }
     /* 手機單欄；小圖與偏右圖縮窄並左右錯開，留一點節奏 */
