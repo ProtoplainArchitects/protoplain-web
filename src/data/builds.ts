@@ -21,7 +21,7 @@ export interface GalleryItem {
   group: string;
 }
 
-export type GalleryLayout = 'grid' | 'editorial';
+export type GalleryLayout = 'grid' | 'editorial' | 'sequence';
 
 export interface Build {
   model: {
@@ -52,7 +52,7 @@ export interface Build {
     note: string;
   };
   gallery: GalleryItem[];
-  /** 分組版型；沒列的分組用 grid（等大格狀）。editorial：大小交錯、保留原比例，適合完工照 */
+  /** 分組版型；沒列的分組用 grid（等大格狀）。editorial：大小交錯、保留原比例，適合完工照；sequence：一張一列依時間往下，適合施工過程 */
   layouts?: Record<string, GalleryLayout>;
   /** 照片區底部的攝影署名 */
   credit?: string;
@@ -114,6 +114,7 @@ export const builds: Record<string, Build> = {
       { src: blp.gallery[7], caption: '戶外瑜伽', kind: 'render', group: '情境模擬' },
       { src: blp.gallery[8], caption: '露營', kind: 'render', group: '情境模擬' },
     ],
+    layouts: { 施工過程: 'sequence' },
   },
   'bamboo-bridge-pavilion': {
     model: {
