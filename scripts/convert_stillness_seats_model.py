@@ -1,6 +1,6 @@
-# 瀞座 viewer.html（互動檢核 v03 同源）→ 官網 TectonicViewer 的 model.json＋model.bin
+# 瀞座 viewer.html（數位構築網頁 v04，互動檢核 v05 同源）→ 官網 TectonicViewer 的 model.json＋model.bin
 # 只取永久構件；鋼筋、模板、防水層、地形、竹林不放。座標 cm → mm（int16），各網格頂點焊接後算稜線。
-# 用法：python3 scripts/convert_stillness_seats_model.py <數位構築網頁-v02 解壓後的 viewer.html> public/works/stillness-seats
+# 用法：python3 scripts/convert_stillness_seats_model.py <數位構築網頁 解壓後的 viewer.html> public/works/stillness-seats
 import sys, re, json, math, struct, base64, gzip
 
 def load(path):
@@ -43,7 +43,7 @@ def classify(name, grp):
     m = re.match(r'續接卡箍(P\d[ab])', name)
     if m: return 5, 'rib' + m[1], f'孟宗竹肋 {m[1]}', '雙支肋，兩端柱腳往拱頂接上', 'steel'
     m = re.match(r'U型管束-(上|下)-(.+?)(?:-\d+)?$', name)
-    if m: return 5, 'uclamp' + m[1] + m[2], 'U 型管束 ×4', 'P4、P5 竹肋鎖固於背面短柱', 'steel'
+    if m: return 5, 'uclamp' + m[1] + m[2], 'U 型管束', 'P4、P5 竹肋鎖固於背面短柱，上下兩竹各一、左右錯開', 'steel'
     if grp == 1:
         nm = {'座椅立面砌卵石': '座椅立面砌卵石', '玄武岩椅面': '玄武岩椅面', '椅背亂石片': '椅背亂石片',
               '椅背頂與背面砌石': '椅背頂與背面砌石'}
@@ -78,6 +78,7 @@ for b in range(0, len(gz['items']), B):
 # 同名合併的錨栓補上數量
 for k, u in units.items():
     if k.startswith('anchorB'): u['name'] = f'錨栓 M25 ×{len(u["items"])}'
+    if k.startswith('uclamp'): u['name'] = f'U 型管束 ×{len(u["items"])}'
 
 def mm(vi):
     s = vi * 3
@@ -139,7 +140,7 @@ idx_b = struct.pack('<%dI' % len(IDX), *IDX)
 edg_b = struct.pack('<%dI' % len(EDG), *EDG)
 with open(out_dir + '/model.bin', 'wb') as f: f.write(pos_b + b'\0' * pad + idx_b + edg_b)
 meta = {
-    'unit': 'mm', 'source': '110151 瀞座 構築過程互動檢核 v03 幾何（Archicad 竣工模型 v10 同源，2026-11-09）',
+    'unit': 'mm', 'source': '110151 瀞座 數位構築網頁 v04 幾何（構築過程互動檢核 v05、Archicad 竣工模型 v12 同源，2026-11-09）',
     'origin': '座椅中軸線∩地坪 ±0 起算之相對座標，+x 東、+y 北（假設）、+z 上',
     'bytes': {'pos': len(pos_b), 'pad': pad, 'idx': len(idx_b), 'edge': len(edg_b)},
     'counts': {str(k): v for k, v in sorted(by_step.items())}, 'units': out_units,
