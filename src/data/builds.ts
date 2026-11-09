@@ -1,6 +1,7 @@
-// 作品頁的「數位構築／組裝說明書／照片」三個區塊。只有列在這裡的作品才會出現這些區塊。
+// 作品頁的「構築過程影片／數位構築／組裝說明書／照片」區塊。只有列在這裡的作品才會出現這些區塊。
 // 模型與 PDF 放在 public/works/<slug>/；說明書逐頁圖與照片放在作品資料夾，由 Astro 轉成 WebP。
 import type { ImageMetadata } from 'astro';
+import ssPoster from '../content/works/stillness-seats/video-poster.jpg';
 
 export interface BuildStep {
   no: string;
@@ -56,6 +57,15 @@ export interface Build {
   layouts?: Record<string, GalleryLayout>;
   /** 照片區底部的攝影署名 */
   credit?: string;
+  /** 構築過程影片（YouTube）；按下播放才連到 YouTube */
+  video?: {
+    youtube: string;
+    title: string;
+    /** 片長，顯示用，例如 2:00 */
+    length: string;
+    poster: ImageMetadata;
+    note: string;
+  };
 }
 
 type Glob = Record<string, { default: ImageMetadata }>;
@@ -174,5 +184,12 @@ export const builds: Record<string, Build> = {
       { no: '08', zh: '屋面', en: 'Roofing', detail: '每列先釘掛瓦條再鋪杉木瓦，上列壓下列', count: '18+1,286' },
     ],
     gallery: [],
+    video: {
+      youtube: 'OVJr9lxp2gQ',
+      title: '石壁竹創森 瀞座 構築過程動畫',
+      length: '2:00',
+      poster: ssPoster,
+      note: '依竣工模型製作，施工順序與動作為示意；最後一段為秋冬上午的日照縮時示意。音樂與音效以程式合成。',
+    },
   },
 };
