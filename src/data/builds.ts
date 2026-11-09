@@ -151,4 +151,28 @@ export const builds: Record<string, Build> = {
     layouts: { 完工: 'editorial' },
     credit: '攝影：揅空間、初樸建築師事務所',
   },
+  'stillness-seats': {
+    model: {
+      meta: '/works/stillness-seats/model.json',
+      bin: '/works/stillness-seats/model.bin',
+      size: '5.0 MB',
+      center: [6.22, 0.3],
+      view: { yaw: 0.4, pitch: 0.22, dist: 19, target: 1.1 },
+      drops: [[0, 1.0], [0, -1.2], [0, 1.0], [0, -0.4], [0, 1.6], [0, 0.8], [0, 1.2], [0, 1.2]],
+      gap: 0.9,
+      smooth: false,
+      note: '模型依竣工圖、細部設計圖與施工照片建立（Archicad 竣工模型 v10，2026-11-09），簡化為網頁網格。鋼筋、模板、防水層、地形與竹林不在模型中；杉木瓦板寬與部分金屬件尺寸為推估值。組裝順序依施工照片日期排列，為示意，不是施工計畫。',
+    },
+    steps: [
+      { no: '01', zh: '預埋錨栓', en: 'Anchor embeds', detail: '綁筋立模後以樣板定位，柱腳兩端各 13 支、椅背背面 20 支', count: '46' },
+      { no: '02', zh: 'RC 一次澆置', en: 'Monolithic casting', detail: '椅背、座椅與兩端三角錐同一套模板一次澆置', count: '1' },
+      { no: '03', zh: '柱腳鋼版與背面短柱', en: 'Base plates & back stubs', detail: '鋼版 A 焊上鋼管 B 套管；椅背背面五處上下各一組短柱', count: '2+20+10' },
+      { no: '04', zh: '地坪', en: 'Floor slab', detail: '級配夯實，澆置露骨材 RC 鋪面', count: '3' },
+      { no: '05', zh: '竹結構', en: 'Primary structure', detail: '鋼管 A 起拱，孟宗竹雙支肋 P5→P1 由低往高就位', count: '10+40' },
+      { no: '06', zh: '砌石', en: 'Stonework', detail: '卵石、玄武岩椅面、椅背與端部亂石片', count: '10' },
+      { no: '07', zh: '竹次結構', en: 'Secondary structure', detail: '桂竹逐支放上，邊放邊沿竹肋綁紮', count: '359' },
+      { no: '08', zh: '屋面', en: 'Roofing', detail: '每列先釘掛瓦條再鋪杉木瓦，上列壓下列', count: '18+1,286' },
+    ],
+    gallery: [],
+  },
 };
