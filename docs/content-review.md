@@ -13,7 +13,6 @@
 | 臺中劉宅 | `liu-house-in-taichung` | 用語改寫、標題含業主姓氏 |
 | 小港佘宅 | `she-house-in-xiaogang` | 標題含業主姓氏 |
 | 石壁竹創森計畫 | `shibi-bamboo-forest` | 用語改寫 |
-| 瀞座 | `stillness-seats` | 用語改寫 |
 | 浮竹軒 | `toilet-of-bamboo-rising` | 用語改寫 |
 | 豐原葉宅 | `ye-house-in-fengyuan` | 標題含業主姓氏 |
 | 石岡詹宅 | `zhan-house-in-shigang` | 標題含業主姓氏 |

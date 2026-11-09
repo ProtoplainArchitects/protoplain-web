@@ -24,7 +24,7 @@ const build = builds[work.id];
       <Fragment slot="extra">
         <TectonicViewer build={build} title={work.data.title} />
         {build.manual && <ManualReader manual={build.manual} steps={build.steps} title={work.data.title} />}
-        <PhotoGallery build={build} title={work.data.title} />
+        {build.gallery.length > 0 && <PhotoGallery build={build} title={work.data.title} />}
         <Lightbox />
       </Fragment>
     )}

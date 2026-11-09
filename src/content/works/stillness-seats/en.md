@@ -5,12 +5,12 @@ subtitle: "Evolution of the Bamboo Grove"
 
 竹林的演化。瀞座
 
-Situated  near the historic Wooden Horse Trail on a gently leveled site, this project  frames a bamboo grove as a threshold space at the main entrance. Conceived as  a place for rest, orientation, and experiential activity, it intentionally  directs visitors through the grove, where the act of stepping on fallen  leaves, feeling the forest floor, or brushing against bamboo initiates the  ritual of forest healing.\
-Passingthrough the hushed grove, visitors find respite beneath a bamboo canopy.\
- The woven bamboo and cedar roof dampens thenoise from nearby cars and voices,\
-whilethe grain of the bamboo structure directs attention upward\
-towardleaves, sky, and shifting light.\
-To pause here is to allow thought to settle into the rhythms of natureitself.
+Situated near the historic Wooden Horse Trail on a gently leveled site, this project frames a bamboo grove as a threshold space at the main entrance. Conceived as a place for rest, orientation, and experiential activity, it intentionally directs visitors through the grove, where stepping on fallen leaves and soft forest soil, or brushing against the bamboo culms, slows their pace before they reach the shelter.\
+Passing through the hushed grove, visitors find respite beneath a bamboo canopy.\
+ The woven bamboo and cedar roof dampens the noise from nearby cars and voices,\
+while the grain of the bamboo structure directs attention upward\
+toward leaves, sky, and shifting light.\
+To pause here is to allow thought to settle into the rhythms of nature itself.
 
 - Client：Yunlin County Government
 - Design Team：ProtoPlain Architects

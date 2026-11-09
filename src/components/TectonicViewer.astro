@@ -213,7 +213,7 @@ const data = {
       const cam = new THREE.PerspectiveCamera(30, 4 / 3, 0.1, 200);
 
       // 材質色取自構件材料，不屬於品牌色票
-      const COLORS: Record<string, number> = { bamboo: 0xc9b58c, wood: 0xb59d7c, steel: 0x8a8f96, rc: 0xcfcbc3, roof: 0xe2dfd8 };
+      const COLORS: Record<string, number> = { bamboo: 0xc9b58c, wood: 0xb59d7c, steel: 0x8a8f96, rc: 0xcfcbc3, roof: 0xe2dfd8, stone: 0xa39e95 };
       const mats: Record<string, InstanceType<typeof THREE.MeshLambertMaterial>> = {};
       for (const k in COLORS) mats[k] = new THREE.MeshLambertMaterial({ color: COLORS[k], flatShading, side: THREE.DoubleSide });
       const hlMat = new THREE.MeshLambertMaterial({ color: tok('--pp-accent'), flatShading, side: THREE.DoubleSide });
