@@ -17,7 +17,7 @@ To pause here is to allow thought to settle into the rhythms of nature itself.
 - Structural Design：Chien-Min Li
 - Construction Team：Bei Xiang Construction Co., Ltd., Midsummer Night Bamboo Workshop, Yu Quan Industrial Co., Ltd.
 
-- Architectural Photography：Shephotoerd, ProtoPlain Architects
+- Architectural Photography：ProtoPlain Architects
 - Location：Shibi Community, Caoling Village, Gukeng Township, Yunlin County
 - Area：35.07 m2
 - Height：3.6m
