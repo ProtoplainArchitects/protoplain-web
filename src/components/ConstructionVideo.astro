@@ -1,0 +1,70 @@
+---
+// 構築過程影片：先放本站的封面圖，按下播放才換成 YouTube（youtube-nocookie）播放器，沒按就不連 YouTube。
+// 沒有 JS 時封面本身就是連到 YouTube 的連結。
+import { Image } from 'astro:assets';
+import type { Build } from '../data/builds';
+
+interface Props { video: NonNullable<Build['video']> }
+const { video } = Astro.props;
+const watch = `https://youtu.be/${video.youtube}`;
+const embed = `https://www.youtube-nocookie.com/embed/${video.youtube}?autoplay=1&rel=0&playsinline=1`;
+---
+<section class="build build-video" aria-labelledby="video-title">
+  <div class="build-head">
+    <h2 id="video-title">構築過程</h2>
+    <span class="pp-data build-kicker">CONSTRUCTION SEQUENCE · {video.length}</span>
+  </div>
+
+  <div class="cv-stage">
+    <a class="cv-play" href={watch} data-embed={embed} data-title={video.title} aria-label={`播放影片：${video.title}（YouTube，${video.length}）`}>
+      <Image src={video.poster} alt="" widths={[640, 1280].filter((w) => w < video.poster.width).concat(video.poster.width)} sizes="100vw" format="webp" loading="lazy" />
+      <span class="cv-btn" aria-hidden="true"></span>
+      <span class="pp-data cv-meta">YouTube · {video.length}</span>
+    </a>
+  </div>
+  <p class="build-note">{video.note}</p>
+</section>
+
+<style>
+  .cv-stage {
+    position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 80vh; overflow: hidden;
+    background: var(--pp-bg-card-sub); border-radius: var(--pp-radius-control);
+  }
+  .cv-play { position: absolute; inset: 0; display: block; color: var(--pp-ink); }
+  .cv-play img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; }
+  .cv-play:hover img { opacity: 0.9; }
+  /* 播放鈕：細線圓框＋三角形，無陰影 */
+  .cv-btn {
+    position: absolute; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+    background: var(--pp-bg-card); border: var(--pp-border-width) solid var(--pp-line-strong);
+  }
+  .cv-btn::after {
+    content: ''; position: absolute; left: 26px; top: 21px;
+    border-style: solid; border-width: 11px 0 11px 17px; border-color: transparent transparent transparent var(--pp-ink);
+  }
+  .cv-play:hover .cv-btn { border-color: var(--pp-ink); }
+  .cv-meta {
+    position: absolute; left: var(--pp-space-md); bottom: var(--pp-space-sm); font-size: 11px;
+    background: var(--pp-bg-card); padding: 2px 8px; border-radius: var(--pp-radius-control);
+  }
+  .cv-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  @media (max-width: 760px) {
+    .cv-stage { max-height: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLAnchorElement>('.cv-play').forEach((a) => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const f = document.createElement('iframe');
+      f.src = a.dataset.embed!;
+      f.title = a.dataset.title!;
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      f.allowFullscreen = true;
+      f.referrerPolicy = 'strict-origin-when-cross-origin';
+      a.replaceWith(f);
+    });
+  });
+</script>

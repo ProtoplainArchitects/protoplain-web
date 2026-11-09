@@ -2,6 +2,7 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import WorkDetail from '../../components/WorkDetail.astro';
+import ConstructionVideo from '../../components/ConstructionVideo.astro';
 import TectonicViewer from '../../components/TectonicViewer.astro';
 import ManualReader from '../../components/ManualReader.astro';
 import PhotoGallery from '../../components/PhotoGallery.astro';
@@ -22,6 +23,7 @@ const build = builds[work.id];
     <Content />
     {build && (
       <Fragment slot="extra">
+        {build.video && <ConstructionVideo video={build.video} />}
         <TectonicViewer build={build} title={work.data.title} />
         {build.manual && <ManualReader manual={build.manual} steps={build.steps} title={work.data.title} />}
         {build.gallery.length > 0 && <PhotoGallery build={build} title={work.data.title} />}
