@@ -35,13 +35,13 @@ const data = {
       <p class="pp-data tv-status" hidden></p>
       <div class="tv-tip" hidden><span class="tv-tip-name"></span><span class="pp-data tv-tip-sub"></span></div>
       <span class="pp-data tv-hint" hidden>左右拖曳旋轉 · 滑過構件看名稱</span>
-    </div>
-
-    <div class="tv-side">
       <div class="tv-actions">
         <button type="button" class="tv-btn tv-play" disabled>組裝</button>
         <button type="button" class="tv-btn tv-explode" disabled aria-pressed="false">拆解</button>
       </div>
+    </div>
+
+    <div class="tv-side">
       <ol class="tv-steps" aria-label="組裝順序">
         {steps.map((s, i) => (
           <li>
@@ -61,9 +61,10 @@ const data = {
 </section>
 
 <style>
-  .tv { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: var(--pp-space-lg); }
+  /* 模型視窗撐滿版寬，組裝／拆解縮成視窗右上角的小鈕，步驟改排在視窗下方 */
+  .tv { display: flex; flex-direction: column; gap: var(--pp-space-md); }
   .tv-stage {
-    position: relative; aspect-ratio: 4 / 3; background: var(--pp-bg-card-sub);
+    position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: 80vh; background: var(--pp-bg-card-sub);
     border-radius: var(--pp-radius-control); overflow: hidden;
   }
   .tv-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; }
@@ -80,6 +81,7 @@ const data = {
     background: var(--pp-bg-card); color: var(--pp-ink);
     border: var(--pp-border-width) solid var(--pp-line-strong); border-radius: var(--pp-radius-control);
   }
+  .tv-btn { font-size: 12px; min-height: 36px; padding: 0 var(--pp-space-sm); }
   .tv-load:hover, .tv-btn:hover:not(:disabled) { border-color: var(--pp-ink); }
   .tv-btn:disabled { color: var(--pp-ink-hint); cursor: default; }
   .tv-btn[aria-pressed='true'] { background: var(--pp-ink); border-color: var(--pp-ink); color: var(--pp-bg-page); }
@@ -94,27 +96,30 @@ const data = {
   .tv-tip-name { font-weight: var(--pp-fw-medium); }
   .tv-tip-sub { font-size: 11px; color: var(--pp-ink-sub); }
 
+  .tv-actions { position: absolute; right: var(--pp-space-sm); top: var(--pp-space-sm); display: flex; gap: 4px; }
   .tv-side { display: flex; flex-direction: column; gap: var(--pp-space-sm); min-width: 0; }
-  .tv-actions { display: flex; gap: var(--pp-space-xs); }
-  .tv-actions .tv-btn { flex: 1 1 0; }
-  .tv-steps { list-style: none; margin: 0; padding: 0; border-top: var(--pp-border-width) solid var(--pp-ink); }
-  .tv-st {
-    font: inherit; width: 100%; text-align: left; cursor: pointer; background: transparent; color: var(--pp-ink-hint);
-    border: 0; border-bottom: var(--pp-border-width) solid var(--pp-line); border-left: 2px solid transparent;
-    display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 0 var(--pp-space-xs); align-items: baseline;
-    padding: 7px 4px;
+  /* 步驟橫向排開，選中的那一步上緣加粗 */
+  .tv-steps {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
-  .tv-st:hover { background: var(--pp-bg-card); }
-  .tv-st.is-done { color: var(--pp-ink); }
-  .tv-st[aria-pressed='true'] { color: var(--pp-ink); border-left-color: var(--pp-ink); }
+  .tv-st {
+    font: inherit; width: 100%; height: 100%; text-align: left; cursor: pointer; background: transparent; color: var(--pp-ink-hint);
+    border: 0; border-top: 2px solid var(--pp-line);
+    display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr; gap: 2px var(--pp-space-xs); align-content: start;
+    padding: var(--pp-space-xs) var(--pp-space-sm) var(--pp-space-sm) 0;
+  }
+  .tv-st:hover { color: var(--pp-ink-sub); }
+  .tv-st.is-done { color: var(--pp-ink); border-top-color: var(--pp-line-strong); }
+  .tv-st[aria-pressed='true'] { color: var(--pp-ink); border-top-color: var(--pp-ink); }
   .tv-st-no { font-size: 12px; }
   .tv-st-zh { font-size: 14px; font-weight: var(--pp-fw-medium); }
-  .tv-st-count { font-size: 11px; color: var(--pp-ink-sub); }
-  .tv-st-detail { grid-column: 2 / 4; font-size: 12px; color: var(--pp-ink-sub); }
+  .tv-st-count { grid-column: 1 / -1; font-size: 11px; color: var(--pp-ink-sub); }
+  .tv-st-detail { grid-column: 1 / -1; font-size: 12px; line-height: 1.6; color: var(--pp-ink-sub); }
 
   @media (max-width: 760px) {
-    .tv { grid-template-columns: 1fr; gap: var(--pp-space-md); }
-    .tv-stage { aspect-ratio: 1 / 1; }
+    .tv-stage { aspect-ratio: 1 / 1; max-height: none; }
+    .tv-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .tv-st-detail { display: none; }
   }
 </style>

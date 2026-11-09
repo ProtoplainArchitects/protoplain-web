@@ -1,5 +1,5 @@
 ---
-// 組裝說明書：逐頁橫向翻閱，桌機一次兩頁。步驟鈕跳到該步頁面，也會跟著數位構築選的步驟翻頁。
+// 組裝說明書：逐頁橫向翻閱，桌機一次兩頁，寬螢幕三頁。步驟鈕跳到該步頁面，也會跟著數位構築選的步驟翻頁。
 // 點頁面放大（Lightbox），全本 PDF 可下載。
 import { Image, getImage } from 'astro:assets';
 import type { Build, BuildStep } from '../data/builds';
@@ -30,7 +30,7 @@ const pages = await Promise.all(
     {pages.map((p) => (
       <figure class="mr-page" data-page={p.n}>
         <a href={p.full} data-lb="manual" data-caption={`組裝說明書 ${p.n} / ${total}`}>
-          <Image src={p.src} alt={`組裝說明書第 ${p.n} 頁`} widths={[480, 720]} sizes="(max-width: 760px) 80vw, 460px" format="webp" loading={p.n <= 2 ? 'eager' : 'lazy'} />
+          <Image src={p.src} alt={`組裝說明書第 ${p.n} 頁`} widths={[480, 720]} sizes="(max-width: 760px) 80vw, (max-width: 1100px) 50vw, 33vw" format="webp" loading={p.n <= 2 ? 'eager' : 'lazy'} />
         </a>
       </figure>
     ))}
@@ -77,6 +77,11 @@ const pages = await Promise.all(
   .mr-arrow:hover:not(:disabled) { border-color: var(--pp-ink); }
   .mr-arrow:disabled { color: var(--pp-ink-hint); cursor: default; }
   .mr-count { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); min-width: 64px; text-align: center; }
+
+  /* 滿版寬度下一次三頁 */
+  @media (min-width: 1100px) {
+    .mr-track { grid-auto-columns: calc((100% - var(--pp-space-sm) * 2) / 3); }
+  }
 
   @media (max-width: 760px) {
     .mr-track { grid-auto-columns: 82%; }

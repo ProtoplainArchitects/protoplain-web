@@ -10,13 +10,14 @@ const items = await Promise.all(
 );
 const groups = [...new Set(items.map((g) => g.group))].map((name) => {
   const list = items.filter((g) => g.group === name);
-  return { name, list, layout: build.layouts?.[name] ?? 'grid', wide: list.every((g) => g.src.width / g.src.height > 1.6) };
+  return { name, list, layout: build.layouts?.[name] ?? 'grid', wide: list.every((g) => g.src.width / g.src.height > 1.6), cap: Math.max(...list.map((g) => g.src.width)) };
 });
 const hasRender = items.some((g) => g.kind === 'render');
 
 // editorial：依序套用這組節奏（整欄、一小一大、偏右附說明、整欄），超過五張從頭循環。不裁切，保留原比例
 const rhythm = ['full', 'pair-s', 'pair-l', 'aside', 'full'] as const;
-const edSizes = { full: '960px', 'pair-s': '400px', 'pair-l': '560px', aside: '640px' };
+// 版面滿版，但不把照片放大超過原圖：整組寬度以組內最寬的原圖為上限
+const edShare = { full: 1, 'pair-s': 5 / 12, 'pair-l': 7 / 12, aside: 8 / 12 };
 // sequence：一張一列依時間往下，左側為步驟序號與說明；直式照片收窄，不裁切
 // 不放大超過原圖寬度
 const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).concat(w);
@@ -38,22 +39,22 @@ const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).conc
             return (
               <li class:list={[tall && 'pg-tall']}>
                 <p class="pg-step"><span class="pp-data pg-no">{String(i + 1).padStart(2, '0')}</span>{p.caption}</p>
-                <a href={p.full} data-lb="gallery" data-caption={label}>
-                  <Image src={p.src} alt={`${title}：${label}`} widths={edWidths(p.src.width)} sizes={tall ? '(max-width: 760px) 75vw, 420px' : '(max-width: 760px) 100vw, 700px'} format="webp" loading="lazy" />
+                <a href={p.full} data-lb="gallery" data-caption={label} style={`max-width:${tall ? Math.min(560, p.src.width) : p.src.width}px`}>
+                  <Image src={p.src} alt={`${title}：${label}`} widths={edWidths(p.src.width)} sizes={tall ? '(max-width: 760px) 75vw, 560px' : '(max-width: 760px) 100vw, 75vw'} format="webp" loading="lazy" />
                 </a>
               </li>
             );
           })}
         </ol>
       ) : grp.layout === 'editorial' ? (
-        <ul class="pg-ed">
+        <ul class="pg-ed" style={`max-width:${grp.cap}px`}>
           {grp.list.map((p, i) => {
             const slot = rhythm[i % rhythm.length];
             const label = p.kind === 'render' ? `情境模擬：${p.caption}` : p.caption;
             return (
               <li class={`pg-${slot}`}>
                 <a href={p.full} data-lb="gallery" data-caption={label}>
-                  <Image src={p.src} alt={`${title}：${label}`} widths={edWidths(p.src.width)} sizes={`(max-width: 760px) 100vw, ${edSizes[slot]}`} format="webp" loading="lazy" />
+                  <Image src={p.src} alt={`${title}：${label}`} widths={edWidths(p.src.width)} sizes={`(max-width: 760px) 100vw, ${Math.round(grp.cap * edShare[slot])}px`} format="webp" loading="lazy" />
                 </a>
                 <p class="pg-cap">{p.caption}</p>
               </li>
@@ -67,7 +68,7 @@ const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).conc
           return (
             <li>
               <a href={p.full} data-lb="gallery" data-caption={label}>
-                <Image src={p.src} alt={`${title}：${label}`} widths={[400, 640]} sizes="(max-width: 760px) 50vw, 310px" format="webp" loading="lazy" />
+                <Image src={p.src} alt={`${title}：${label}`} widths={[400, 640, 800]} sizes="(max-width: 760px) 50vw, (max-width: 1200px) 33vw, 25vw" format="webp" loading="lazy" />
               </a>
               <p class="pg-cap">{p.caption}</p>
             </li>
@@ -123,14 +124,17 @@ const edWidths = (w: number) => [480, 800, 1200, 1600].filter((x) => x < w).conc
   .pg-step { margin: 0; display: flex; flex-direction: column; gap: 4px; }
   .pg-no { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); }
   .pg-seq a { display: block; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
-  .pg-tall a { max-width: 420px; }
   .pg-seq img { width: 100%; height: auto; display: block; transition: opacity 0.2s; }
   .pg-seq a:hover img { opacity: 0.88; }
+
+  @media (min-width: 1200px) {
+    .pg-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  }
 
   @media (max-width: 760px) {
     .pg-seq li { display: block; padding: var(--pp-space-md) 0; }
     .pg-step { flex-direction: row; gap: var(--pp-space-xs); margin-bottom: var(--pp-space-xs); }
-    .pg-tall a { max-width: none; width: 75%; }
+    .pg-tall a { width: 75%; }
     .pg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pg-wide { grid-template-columns: 1fr; }
     /* 手機單欄；小圖與偏右圖縮窄並左右錯開，留一點節奏 */

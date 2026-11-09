@@ -22,7 +22,8 @@ const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
   </header>
   {d.cover && (
     <figure class="work-cover">
-      <Image src={d.cover} alt={title} widths={[800, 1260]} sizes="(max-width: 960px) 100vw, 960px" format="webp" loading="eager" />
+      {/* 封面撐滿版寬；原圖太小（1000px 以下）的不放大，維持原寸 */}
+      <Image src={d.cover} alt={title} widths={[800, 1260, 1800, 2500].filter((w) => w < d.cover!.width).concat(d.cover!.width)} sizes="100vw" format="webp" loading="eager" style={d.cover.width < 1000 ? `max-width:${d.cover.width}px` : undefined} />
     </figure>
   )}
   <div class="work-body">
