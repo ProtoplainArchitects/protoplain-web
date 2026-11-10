@@ -18,7 +18,7 @@ export interface GalleryItem {
   caption: string;
   /** render 會標「情境模擬」，不能當作實景照片 */
   kind: 'photo' | 'render';
-  /** 分組：「施工過程」排進過程段；其餘實景照片排進完工段，「完工」以外的組名會標在說明前 */
+  /** 分組：「施工過程」排進過程段；其餘實景照片排進完工段（第一張當作品頁封面，其餘進橫卷），「完工」以外的組名會標在說明前 */
   group: string;
 }
 
@@ -40,7 +40,7 @@ export interface Build {
     gap: number;
     /** true：平滑著色（曲面多的模型）；false：平面著色 */
     smooth: boolean;
-    note: string;
+    note?: string;
   };
   steps: BuildStep[];
   manual?: {
@@ -51,8 +51,6 @@ export interface Build {
     note: string;
   };
   gallery: GalleryItem[];
-  /** 照片區底部的攝影署名 */
-  credit?: string;
   /** 構築過程影片（YouTube）；按下播放才連到 YouTube */
   video?: {
     youtube: string;
@@ -89,7 +87,6 @@ export const builds: Record<string, Build> = {
       drops: [[0, -0.5], [0, 0.6], [0, 1.4], [0, 1.4], [0, 1.4], [0, 1.4], [0, 1.4], [0, 1.4], [2.2, 0]],
       gap: 0.95,
       smooth: false,
-      note: '模型由 Archicad 經 Lumion LiveSync 匯出（2026-10-22），簡化為網頁網格，不含之後的接頭修改。組裝順序為示意，不是施工計畫。',
     },
     steps: [
       { no: '01', zh: '基礎', en: 'Footings', detail: '預鑄墩座，柱腳鉸座同步就位', count: '12', page: 12 },
@@ -131,7 +128,6 @@ export const builds: Record<string, Build> = {
       drops: [[0, -1.2], [0, 2.5], [0, 1.6], [0, 1.6], [0, 1.6], [0, 1.6]],
       gap: 1.5,
       smooth: true,
-      note: '模型為組裝動畫 v07 幾何（2026-10-05），與參數 v01 同源，基礎依 A2-05、屋面依 A203 修正。公開版已拿掉螺栓與螺帽。組裝順序為示意，不是施工計畫。',
     },
     steps: [
       { no: '01', zh: '基礎', en: 'Footings', detail: 'F1 大底＋墩座一體灌漿', count: '2' },
@@ -153,7 +149,6 @@ export const builds: Record<string, Build> = {
       { src: bbp[8], caption: '屋簷轉角', kind: 'photo', group: '細部' },
       { src: bbp[9], caption: '由下往上看竹虹單元', kind: 'photo', group: '細部' },
     ],
-    credit: '攝影：揅空間、初樸建築師事務所',
   },
   'stillness-seats': {
     model: {
@@ -179,8 +174,8 @@ export const builds: Record<string, Build> = {
     ],
     gallery: [],
     video: {
-      youtube: 'OVJr9lxp2gQ',
-      title: '石壁竹創森 瀞座 構築過程動畫',
+      youtube: 'nWOoEHmdPfQ',
+      title: '竹創森 瀞座 構築過程動畫',
       length: '2:00',
       poster: ssPoster,
       note: '依竣工模型製作，施工順序與動作為示意；最後一段為秋冬上午的日照縮時示意。音樂與音效以程式合成。',

@@ -47,7 +47,7 @@ const data = {
           </li>
         ))}
       </ol>
-      <p class="build-note">{model.note}</p>
+      {model.note && <p class="build-note">{model.note}</p>}
     </div>
   </div>
   <script type="application/json" class="tv-data" set:html={JSON.stringify(data)}></script>

@@ -1,5 +1,5 @@
 ---
-// 作品頁。順序：封面 → 短文 → 完工 → 過程 → 構築 → 情境 → 資料 → 下一件；沒有資料的段落不出現，編號自動遞補。
+// 作品頁。順序：封面 → 短文 → 完工 → 過程 → 構築 → 情境 → 資料 → 下一件；沒有資料的段落不出現。頁面上不放編號與張數。
 // 內文（slot）最後一張清單視為作品資料，移到頁尾的「資料」段。
 import { Image, getImage } from 'astro:assets';
 import ConstructionVideo from './ConstructionVideo.astro';
@@ -42,22 +42,23 @@ const done = all
   .filter((g) => g.kind === 'photo' && g.group !== PROCESS)
   .map((g) => ({ ...g, tag: g.group === '完工' ? undefined : g.group }));
 
-const pad = (n: number) => String(n).padStart(2, '0');
 const hasProcess = process.length > 0 || !!build?.video;
+// 完工照的第一張就是封面：封面直接用它（比 cover.jpg 的裁切版完整），點開進放大檢視；橫卷從第二張開始
+const hero = done[0];
+const rest = done.slice(1);
+
+// 頁面上不出現編號與張數。level 是索引上那條橫線的長短（1 短、2 中、3 長），只暗示內容多寡；只有影片的過程段用播放記號
+const level = (n: number) => (n >= 10 ? 3 : n >= 5 ? 2 : n >= 2 ? 1 : 0);
 const sections = [
-  done.length > 0 && { id: 'done', zh: '完工', en: 'Completed', meta: pad(done.length) },
-  hasProcess && { id: 'process', zh: '過程', en: 'Process', meta: process.length ? pad(process.length) : build!.video!.length },
-  build && { id: 'tectonic', zh: '構築', en: 'Tectonics', meta: `${pad(build.steps.length)} 步` },
-  renders.length > 0 && { id: 'scene', zh: '情境', en: 'Scenarios', meta: pad(renders.length) },
-  hasFacts && { id: 'facts', zh: '資料', en: 'Facts', meta: '' },
-].filter(Boolean) as { id: string; zh: string; en: string; meta: string }[];
-// 只有一段時不編號、不出現段落索引
+  rest.length > 0 && { id: 'done', zh: '完工', en: 'Completed', level: level(done.length), play: false },
+  hasProcess && { id: 'process', zh: '過程', en: 'Process', level: level(process.length), play: process.length === 0 },
+  build && { id: 'tectonic', zh: '構築', en: 'Tectonics', level: level(build.steps.length), play: false },
+  renders.length > 0 && { id: 'scene', zh: '情境', en: 'Scenarios', level: level(renders.length), play: false },
+  hasFacts && { id: 'facts', zh: '資料', en: 'Facts', level: 0, play: false },
+].filter(Boolean) as { id: string; zh: string; en: string; level: number; play: boolean }[];
+// 只有一段時不出現段落索引
 const multi = sections.length > 1;
-const head = (id: string) => {
-  const i = sections.findIndex((s) => s.id === id);
-  const s = sections[i];
-  return { no: multi ? pad(i + 1) : '', zh: s.zh, kicker: [lang === 'zh' && s.en.toUpperCase(), s.meta].filter(Boolean).join(' ・ '), label: t(s.zh, s.en) };
-};
+const label = (id: string) => { const x = sections.find((y) => y.id === id)!; return t(x.zh, x.en); };
 ---
 <article class="work">
   <header class="work-head">
@@ -72,46 +73,53 @@ const head = (id: string) => {
     {d.draft && <p class="draft-flag">draft：{d.review.join('、')}（不會出現在正式網站）</p>}
   </header>
 
-  {d.cover && (
+  {hero ? (
+    <figure class="work-cover">
+      <a href={hero.full} data-lb="done" data-caption={hero.label} aria-label={t('放大檢視完工照片', 'View photos')}>
+        <Image src={hero.src} alt={title} widths={[800, 1260, 1800, 2500].filter((w) => w < hero.src.width).concat(hero.src.width)} sizes="100vw" format="webp" loading="eager" />
+      </a>
+    </figure>
+  ) : d.cover && (
     <figure class="work-cover">
       {/* 封面一律撐滿版寬，視覺強度優先；原圖不足 2500px 的待換高解析原檔 */}
       <Image src={d.cover} alt={title} widths={[800, 1260, 1800, 2500].filter((w) => w < d.cover!.width).concat(d.cover!.width)} sizes="100vw" format="webp" loading="eager" />
+      {/* 封面不是實景照片時要標明，避免被當成完工照 */}
+      {d.coverKind === 'render' && <figcaption class="work-cover-tag">{t('情境模擬', 'Rendering')}</figcaption>}
     </figure>
   )}
 
   {multi && (
     <nav class="work-nav" aria-label={t('本頁段落', 'On this page')}>
-      {sections.map((s, i) => (
-        <a href={`#${s.id}`} data-sec={s.id}><span class="pp-data">{pad(i + 1)}</span>{t(s.zh, s.en)}</a>
+      {sections.map((s) => (
+        <a href={`#${s.id}`} data-sec={s.id}>
+          {t(s.zh, s.en)}
+          {s.play && <span class="work-nav-play" aria-hidden="true"></span>}
+          {s.level > 0 && <span class:list={['work-nav-line', `l${s.level}`]} aria-hidden="true"></span>}
+        </a>
       ))}
     </nav>
   )}
 
   <div class:list={['work-text', hasFacts && 'has-facts']} data-reveal set:html={html} />
 
-  {done.length > 0 && (
+  {rest.length > 0 && (
     <section class="work-sec" id="done">
       <div class="work-sec-head" data-reveal>
-        {head('done').no && <span class="pp-data work-no">{head('done').no}</span>}
-        <h2>{head('done').label}</h2>
-        <span class="pp-data work-meta">{head('done').kicker}</span>
+        <h2>{label('done')}</h2>
       </div>
-      <PhotoStrip items={done} title={title} group="done" size="l" />
-      {build?.credit && <p class="work-note">{build.credit}</p>}
+      <PhotoStrip items={rest} title={title} group="done" size="l" />
     </section>
   )}
 
   {hasProcess && (
     <section class="work-sec" id="process">
       <div class="work-sec-head" data-reveal>
-        {head('process').no && <span class="pp-data work-no">{head('process').no}</span>}
-        <h2>{head('process').label}</h2>
-        <span class="pp-data work-meta">{head('process').kicker}</span>
+        <h2>{label('process')}</h2>
       </div>
       {process.length > 0 && (
         <>
           <p class="work-lead" data-reveal>依施工先後由左到右。</p>
-          <PhotoStrip items={process} title={`${title}施工過程`} group="process" size="s" numbered />
+          <PhotoStrip items={process} title={`${title}施工過程`} group="process" size="s" />
         </>
       )}
       {build?.video && <div class:list={[process.length > 0 && 'work-gap']}><ConstructionVideo video={build.video} /></div>}
@@ -121,11 +129,8 @@ const head = (id: string) => {
   {build && (
     <section class="work-sec" id="tectonic">
       <div class="work-sec-head" data-reveal>
-        {head('tectonic').no && <span class="pp-data work-no">{head('tectonic').no}</span>}
-        <h2>{head('tectonic').label}</h2>
-        <span class="pp-data work-meta">{head('tectonic').kicker}</span>
+        <h2>{label('tectonic')}</h2>
       </div>
-      <p class="work-lead" data-reveal>載入模型，照組裝順序一步一步組起來；左右拖曳可以旋轉。</p>
       <TectonicViewer build={build} title={title} />
       {build.manual && (
         <>
@@ -139,9 +144,7 @@ const head = (id: string) => {
   {renders.length > 0 && (
     <section class="work-sec" id="scene">
       <div class="work-sec-head" data-reveal>
-        {head('scene').no && <span class="pp-data work-no">{head('scene').no}</span>}
-        <h2>{head('scene').label}</h2>
-        <span class="pp-data work-meta">{head('scene').kicker}</span>
+        <h2>{label('scene')}</h2>
       </div>
       <p class="work-lead" data-reveal>情境模擬圖以模型為基礎合成，人物與場景不是實景照片，也不代表完工後的實際使用情形。</p>
       <PhotoStrip items={renders} title={`${title}情境模擬`} group="scene" size="s" />
@@ -151,22 +154,23 @@ const head = (id: string) => {
   {hasFacts && (
     <section class="work-sec" id="facts">
       <div class="work-sec-head" data-reveal>
-        {head('facts').no && <span class="pp-data work-no">{head('facts').no}</span>}
-        <h2>{head('facts').label}</h2>
-        <span class="pp-data work-meta">{head('facts').kicker}</span>
+        <h2>{label('facts')}</h2>
       </div>
       <div class="work-facts" data-reveal set:html={html} />
     </section>
   )}
 
-  {next && (
-    <a class="work-next" href={next.href}>
-      <span class="pp-data">{t('下一件', 'Next')}</span>
-      <span class="work-next-title">{next.title}</span>
-      <span class="work-next-arrow" aria-hidden="true">→</span>
-    </a>
-  )}
-  <p class="back"><a href={lang === 'en' ? '/en/works/' : '/works/'}>{t('← 回作品列表', '← All works')}</a></p>
+  {/* 頁尾導覽收在一列：左邊回列表，右邊下一件，都用小字 */}
+  <nav class="work-end" aria-label={t('作品導覽', 'More works')}>
+    <a href={lang === 'en' ? '/en/works/' : '/works/'}>{t('← 作品列表', '← All works')}</a>
+    {next && (
+      <a class="work-next" href={next.href}>
+        <span class="work-next-label">{t('下一件', 'Next')}</span>
+        {next.title}
+        <span class="work-next-arrow" aria-hidden="true">→</span>
+      </a>
+    )}
+  </nav>
 
   {build && <Lightbox />}
 </article>
