@@ -2,33 +2,24 @@
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import WorkDetail from '../../components/WorkDetail.astro';
-import ConstructionVideo from '../../components/ConstructionVideo.astro';
-import TectonicViewer from '../../components/TectonicViewer.astro';
-import ManualReader from '../../components/ManualReader.astro';
-import PhotoGallery from '../../components/PhotoGallery.astro';
-import Lightbox from '../../components/Lightbox.astro';
 import { builds } from '../../data/builds';
 import { getWorks, getEnglishIds, workUrl } from '../../lib/works';
 
 export async function getStaticPaths() {
   const [works, enIds] = await Promise.all([getWorks(), getEnglishIds()]);
-  return works.map((work) => ({ params: { slug: work.id }, props: { work, hasEn: enIds.has(work.id) } }));
+  return works.map((work, i) => ({
+    params: { slug: work.id },
+    props: { work, hasEn: enIds.has(work.id), next: works[(i + 1) % works.length] },
+  }));
 }
-const { work, hasEn } = Astro.props;
+const { work, hasEn, next } = Astro.props;
 const { Content } = await render(work);
-const build = builds[work.id];
 ---
 <Base lang="zh" title={work.data.title} description={work.data.subtitle ?? undefined} altHref={hasEn ? workUrl(work.id, 'en') : '/en/works/'}>
-  <WorkDetail work={work} lang="zh" title={work.data.title} subtitle={work.data.subtitle}>
+  <WorkDetail
+    work={work} lang="zh" title={work.data.title} subtitle={work.data.subtitle} body={work.body}
+    build={builds[work.id]} next={{ href: workUrl(next.id, 'zh'), title: next.data.title }}
+  >
     <Content />
-    {build && (
-      <Fragment slot="extra">
-        {build.video && <ConstructionVideo video={build.video} />}
-        <TectonicViewer build={build} title={work.data.title} />
-        {build.manual && <ManualReader manual={build.manual} steps={build.steps} title={work.data.title} />}
-        {build.gallery.length > 0 && <PhotoGallery build={build} title={work.data.title} />}
-        <Lightbox />
-      </Fragment>
-    )}
   </WorkDetail>
 </Base>

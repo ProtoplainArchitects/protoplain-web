@@ -18,11 +18,9 @@ export interface GalleryItem {
   caption: string;
   /** render 會標「情境模擬」，不能當作實景照片 */
   kind: 'photo' | 'render';
-  /** 照片區的分組標題，依出現順序排列 */
+  /** 分組：「施工過程」排進過程段；其餘實景照片排進完工段，「完工」以外的組名會標在說明前 */
   group: string;
 }
-
-export type GalleryLayout = 'grid' | 'editorial' | 'sequence';
 
 export interface Build {
   model: {
@@ -53,8 +51,6 @@ export interface Build {
     note: string;
   };
   gallery: GalleryItem[];
-  /** 分組版型；沒列的分組用 grid（等大格狀）。editorial：大小交錯、保留原比例，適合完工照；sequence：一張一列依時間往下，適合施工過程 */
-  layouts?: Record<string, GalleryLayout>;
   /** 照片區底部的攝影署名 */
   credit?: string;
   /** 構築過程影片（YouTube）；按下播放才連到 YouTube */
@@ -124,7 +120,6 @@ export const builds: Record<string, Build> = {
       { src: blp.gallery[7], caption: '戶外瑜伽', kind: 'render', group: '情境模擬' },
       { src: blp.gallery[8], caption: '露營', kind: 'render', group: '情境模擬' },
     ],
-    layouts: { 施工過程: 'sequence' },
   },
   'bamboo-bridge-pavilion': {
     model: {
@@ -158,7 +153,6 @@ export const builds: Record<string, Build> = {
       { src: bbp[8], caption: '屋簷轉角', kind: 'photo', group: '細部' },
       { src: bbp[9], caption: '由下往上看竹虹單元', kind: 'photo', group: '細部' },
     ],
-    layouts: { 完工: 'editorial' },
     credit: '攝影：揅空間、初樸建築師事務所',
   },
   'stillness-seats': {

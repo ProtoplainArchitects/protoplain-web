@@ -11,12 +11,7 @@ const pages = await Promise.all(
   manual.pages.map(async (src, i) => ({ src, n: i + 1, full: (await getImage({ src, width: 1240, format: 'webp' })).src })),
 );
 ---
-<section class="build build-manual" aria-labelledby="manual-title">
-  <div class="build-head">
-    <h2 id="manual-title">組裝說明書</h2>
-    <span class="pp-data build-kicker">ASSEMBLY MANUAL · {manual.version}</span>
-  </div>
-
+<section class="build build-manual" aria-label="組裝說明書">
   <div class="mr-bar">
     <div class="mr-steps" role="group" aria-label="跳到步驟">
       {steps.map((s, i) => s.page && (
