@@ -18,14 +18,31 @@
 src/content/works/<slug>/   一件作品一個資料夾
   index.md                  中文內文＋共用欄位（schema 見 src/content.config.ts）
   en.md                     英文內文（選填；沒有就不產生英文頁）
-  cover.jpg                 封面（1260px 寬以內、已去除 EXIF）
+  cover.jpg                 封面（已去除 EXIF）；作品列表縮圖用它，沒有完工照的作品頁也用它
+  gallery/                  完工、施工過程、情境模擬的照片（有列在 builds.ts 的作品才有）
+  manual/                   組裝說明書逐頁圖（同上）
 src/pages/                  中文在根目錄，英文在 /en/
-src/components/             WorkGrid、WorkDetail
+src/components/             WorkGrid（列表）、WorkDetail（作品頁）
+                            PhotoStrip（照片橫卷）、Lightbox（放大檢視）
+                            ConstructionVideo、TectonicViewer、ManualReader（影片、模型、說明書）
+src/data/builds.ts          哪些作品有影片、模型、說明書、照片，以及每張照片的說明與分組
 src/styles/pp-tokens.css    本所視覺 token，取自 pp-brand skill，不要在這裡改色
 src/styles/site.css         站點版面，只能用 --pp-* 變數
 scripts/                    一次性匯入工具（Format 舊站歸檔）
 docs/                       slug 對照表、內容待處理清單
 ```
+
+## 作品頁的版型規則
+
+`WorkDetail` 決定整頁順序，各段標題也由它出，其他元件不自帶標題。
+
+- 順序：封面 → 短文 → 完工 → 過程 → 構築 → 情境 → 資料 → 頁尾導覽。沒有內容的段落不出現；只有一段時不顯示段落索引。
+- **頁面上不放編號與張數**。段落索引用一條細橫線的長短（三級）暗示內容多寡，橫卷與放大檢視用進度線。數位構築與說明書裡的步驟編號、頁碼是操作用的，保留。
+- 照片分組寫在 `builds.ts` 的 `group`：「施工過程」進過程段，`kind: 'render'` 進情境段，其餘實景照片進完工段。
+- **完工組的第一張就是作品頁封面**，點封面進放大檢視，橫卷從第二張開始。要換封面就調整完工照的順序。沒有完工照的作品才用 `cover.jpg`。
+- 封面是情境模擬圖時，在 `index.md` 加 `coverKind: render`，封面會標「情境模擬」；換成實景照片後把這一行拿掉。
+- 內文（`index.md`）最後一張清單視為作品資料，會移到頁尾「資料」段。攝影署名寫在這張清單裡，不另外寫在別處。
+- 影片、模型、照片目前只掛在中文頁；英文頁只有內文、資料與頁尾導覽。
 
 ## 新增或修改作品的流程
 

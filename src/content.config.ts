@@ -20,6 +20,8 @@ const works = defineCollection({
       axis: z.enum(['人文構築', '自然構築']).nullable(),
       location: z.string().nullable(),
       cover: image().optional(),
+      // 封面的性質：photo 實景照片（預設）；render 情境模擬圖，作品頁封面會標「情境模擬」
+      coverKind: z.enum(['photo', 'render']).default('photo'),
       // draft: true 的作品只在 npm run dev 與 Cloudflare 預覽網址看得到，不進正式建置
       draft: z.boolean().default(false),
       review: z.array(z.string()).default([]),

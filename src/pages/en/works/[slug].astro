@@ -7,16 +7,21 @@ import { getWorks, workUrl } from '../../../lib/works';
 export async function getStaticPaths() {
   const works = await getWorks();
   const en = await getCollection('worksEn');
-  return en
-    .map((entry) => ({ entry, work: works.find((w) => w.id === entry.id) }))
-    .filter((x) => x.work)
-    .map(({ entry, work }) => ({ params: { slug: entry.id }, props: { entry, work: work! } }));
+  // 依中文頁同樣的排序；下一件只在有英文頁的作品之間輪
+  const list = works.map((work) => ({ work, entry: en.find((e) => e.id === work.id) })).filter((x) => x.entry);
+  return list.map(({ entry, work }, i) => ({
+    params: { slug: work.id },
+    props: { entry: entry!, work, next: list[(i + 1) % list.length].entry! },
+  }));
 }
-const { entry, work } = Astro.props;
+const { entry, work, next } = Astro.props;
 const { Content } = await render(entry);
 ---
 <Base lang="en" title={entry.data.title} altHref={workUrl(work.id, 'zh')}>
-  <WorkDetail work={work} lang="en" title={entry.data.title} subtitle={entry.data.subtitle}>
+  <WorkDetail
+    work={work} lang="en" title={entry.data.title} subtitle={entry.data.subtitle} body={entry.body}
+    next={{ href: workUrl(next.id, 'en'), title: next.data.title }}
+  >
     <Content />
   </WorkDetail>
 </Base>

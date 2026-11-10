@@ -9,12 +9,7 @@ const { video } = Astro.props;
 const watch = `https://youtu.be/${video.youtube}`;
 const embed = `https://www.youtube-nocookie.com/embed/${video.youtube}?autoplay=1&rel=0&playsinline=1`;
 ---
-<section class="build build-video" aria-labelledby="video-title">
-  <div class="build-head">
-    <h2 id="video-title">構築過程</h2>
-    <span class="pp-data build-kicker">CONSTRUCTION SEQUENCE · {video.length}</span>
-  </div>
-
+<section class="build build-video" aria-label="構築過程影片">
   <div class="cv-stage">
     <a class="cv-play" href={watch} data-embed={embed} data-title={video.title} aria-label={`播放影片：${video.title}（YouTube，${video.length}）`}>
       <Image src={video.poster} alt="" widths={[640, 1280].filter((w) => w < video.poster.width).concat(video.poster.width)} sizes="100vw" format="webp" loading="lazy" />
@@ -47,7 +42,8 @@ const embed = `https://www.youtube-nocookie.com/embed/${video.youtube}?autoplay=
     position: absolute; left: var(--pp-space-md); bottom: var(--pp-space-sm); font-size: 11px;
     background: var(--pp-bg-card); padding: 2px 8px; border-radius: var(--pp-radius-control);
   }
-  .cv-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  /* 播放器是按下後由 JS 插入的，不帶 Astro 的樣式範圍標記，要用 :global 才套得到 */
+  .cv-stage :global(iframe) { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
   @media (max-width: 760px) {
     .cv-stage { max-height: none; }

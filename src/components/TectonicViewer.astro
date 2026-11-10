@@ -14,12 +14,7 @@ const data = {
   steps: steps.map((s) => ({ no: s.no, zh: s.zh })),
 };
 ---
-<section class="build build-tectonic" aria-labelledby="tectonic-title">
-  <div class="build-head">
-    <h2 id="tectonic-title">數位構築</h2>
-    <span class="pp-data build-kicker">DIGITAL TECTONICS · BIM</span>
-  </div>
-
+<section class="build build-tectonic" aria-label="數位構築">
   <div class="tv">
     <div class="tv-stage">
       <canvas class="tv-canvas" role="img" aria-label={`${title} BIM 模型，左右拖曳旋轉，滑過構件顯示名稱`}></canvas>
@@ -52,7 +47,7 @@ const data = {
           </li>
         ))}
       </ol>
-      <p class="build-note">{model.note}</p>
+      {model.note && <p class="build-note">{model.note}</p>}
     </div>
   </div>
   <script type="application/json" class="tv-data" set:html={JSON.stringify(data)}></script>

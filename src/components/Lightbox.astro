@@ -7,8 +7,8 @@
     <img class="lb-img" alt="" />
     <figcaption class="lb-cap">
       <span class="lb-text"></span>
-      <span class="pp-data lb-count"></span>
     </figcaption>
+    <span class="lb-line" aria-hidden="true"><span class="lb-fill"></span></span>
   </figure>
   <button type="button" class="lb-btn lb-prev" aria-label="上一張">←</button>
   <button type="button" class="lb-btn lb-next" aria-label="下一張">→</button>
@@ -22,8 +22,13 @@
   }
   .lb::backdrop { background: var(--pp-bg-page); }
   .lb-fig { position: absolute; inset: 56px 64px 72px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--pp-space-xs); }
-  .lb-img { max-width: 100%; max-height: calc(100% - 32px); object-fit: contain; border-radius: var(--pp-radius-control); }
+  .lb-img { max-width: 100%; max-height: calc(100% - 44px); object-fit: contain; border-radius: var(--pp-radius-control); }
   .lb-cap { display: flex; gap: var(--pp-space-sm); font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  /* 不顯示第幾張，只用一條線表示看到哪裡 */
+  .lb-line { width: 160px; max-width: 60%; height: 1px; background: var(--pp-line); position: relative; }
+  .lb-line[hidden] { display: none; }
+  .lb-fill { position: absolute; inset: 0; background: var(--pp-ink); transform-origin: left; transform: scaleX(0); transition: transform 0.25s ease; }
+  @media (prefers-reduced-motion: reduce) { .lb-fill { transition: none; } }
   .lb-btn {
     position: absolute; font: inherit; font-size: 18px; width: 44px; height: 44px; cursor: pointer;
     background: var(--pp-bg-card); color: var(--pp-ink);
@@ -48,7 +53,8 @@
   if (dlg) {
     const img = dlg.querySelector<HTMLImageElement>('.lb-img')!;
     const text = dlg.querySelector<HTMLElement>('.lb-text')!;
-    const count = dlg.querySelector<HTMLElement>('.lb-count')!;
+    const line = dlg.querySelector<HTMLElement>('.lb-line')!;
+    const fill = dlg.querySelector<HTMLElement>('.lb-fill')!;
     const prev = dlg.querySelector<HTMLButtonElement>('.lb-prev')!;
     const next = dlg.querySelector<HTMLButtonElement>('.lb-next')!;
     let group: HTMLAnchorElement[] = [];
@@ -61,7 +67,8 @@
       img.src = a.href;
       img.alt = a.querySelector('img')?.alt ?? '';
       text.textContent = a.dataset.caption ?? '';
-      count.textContent = group.length > 1 ? `${at + 1} / ${group.length}` : '';
+      line.hidden = group.length < 2;
+      fill.style.transform = `scaleX(${(at + 1) / group.length})`;
       prev.hidden = next.hidden = group.length < 2;
     };
 

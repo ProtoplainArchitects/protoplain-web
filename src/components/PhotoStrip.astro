@@ -1,0 +1,110 @@
+---
+// 橫卷：照片等高、保留原比例，往右捲；右緣露出下一張的一角。下方只有進度線與左右鈕，不顯示張數。點開進 Lightbox。
+// size="l" 給完工照（接近一個畫面高），size="s" 給施工過程與情境模擬（小張）。
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Item { src: ImageMetadata; full: string; caption: string; label: string; tag?: string }
+interface Props { items: Item[]; title: string; group: string; size: 'l' | 's' }
+const { items, title, group, size } = Astro.props;
+const widths = (w: number) => (size === 'l' ? [640, 1000, 1400, 1800] : [320, 480, 720]).filter((x) => x < w).concat(w);
+---
+<div class:list={['ps', `ps-${size}`]} data-reveal>
+  <ul class="ps-track" tabindex="0" aria-label={`${title}，共 ${items.length} 張，可左右捲動`}>
+    {items.map((p, i) => (
+      <li style={`--r:${(p.src.width / p.src.height).toFixed(4)}`}>
+        <a href={p.full} data-lb={group} data-caption={p.label}>
+          <Image src={p.src} alt={`${title}：${p.label}`} widths={widths(p.src.width)} sizes={size === 'l' ? '90vw' : '50vw'} format="webp" loading={i < 2 ? 'eager' : 'lazy'} />
+        </a>
+        <p class="ps-cap">
+          {p.tag && <span class="ps-tag">{p.tag}</span>}
+          {p.caption}
+        </p>
+      </li>
+    ))}
+  </ul>
+  <div class="ps-bar">
+    <span class="ps-line" aria-hidden="true"><span class="ps-fill"></span></span>
+    <button type="button" class="ps-btn ps-prev" aria-label="上一張">←</button>
+    <button type="button" class="ps-btn ps-next" aria-label="下一張">→</button>
+  </div>
+</div>
+
+<style>
+  /* 往左右貼到畫面邊緣：抵銷 main 的左右留白，第一張仍與文字對齊 */
+  .ps { --h: min(72vh, 680px); margin: 0 calc(var(--pp-space-md) * -1); }
+  .ps-s { --h: 240px; }
+  .ps-track {
+    list-style: none; margin: 0; padding: 0 var(--pp-space-md); display: flex; gap: var(--pp-space-sm);
+    overflow-x: auto; scroll-snap-type: x proximity; scroll-padding-left: var(--pp-space-md);
+    scrollbar-width: none; overscroll-behavior-x: contain;
+  }
+  .ps-track::-webkit-scrollbar { display: none; }
+  .ps-track li { flex: none; scroll-snap-align: start; width: calc(var(--h) * var(--r)); max-width: 88vw; }
+  .ps-track a { display: block; height: var(--h); max-height: calc(88vw / var(--r)); overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .ps-track img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; }
+  .ps-track a:hover img { opacity: 0.9; }
+  .ps-cap { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); margin: 6px 0 0; display: flex; gap: var(--pp-space-xs); }
+  .ps-tag { color: var(--pp-ink-hint); }
+
+  .ps-bar { display: flex; align-items: center; gap: var(--pp-space-sm); padding: var(--pp-space-sm) var(--pp-space-md) 0; }
+  .ps-line { flex: 1; height: 1px; background: var(--pp-line); position: relative; }
+  .ps-fill { position: absolute; left: 0; top: 0; height: 1px; width: 100%; background: var(--pp-ink); transform-origin: left; transform: scaleX(0); transition: transform 0.25s ease; }
+  .ps-btn {
+    font: inherit; width: 36px; height: 36px; cursor: pointer; background: transparent; color: var(--pp-ink);
+    border: var(--pp-border-width) solid var(--pp-line-strong); border-radius: var(--pp-radius-control);
+  }
+  .ps-btn:hover { border-color: var(--pp-ink); }
+  .ps-btn:disabled { color: var(--pp-ink-hint); border-color: var(--pp-line); cursor: default; }
+
+  /* 有滑鼠的裝置：左右鈕平常收起，滑到橫卷上或用鍵盤聚焦時才浮現 */
+  @media (hover: hover) {
+    .ps-btn { opacity: 0; transition: opacity 0.2s; }
+    .ps:hover .ps-btn, .ps:focus-within .ps-btn { opacity: 1; }
+  }
+  @media (max-width: 760px) {
+    .ps { --h: 56vh; }
+    .ps-s { --h: 180px; }
+    .ps-btn { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ps-fill, .ps-btn { transition: none; }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('.ps').forEach((ps) => {
+    const track = ps.querySelector<HTMLElement>('.ps-track')!;
+    const lis = Array.from(track.children) as HTMLElement[];
+    const fill = ps.querySelector<HTMLElement>('.ps-fill')!;
+    const prev = ps.querySelector<HTMLButtonElement>('.ps-prev')!;
+    const next = ps.querySelector<HTMLButtonElement>('.ps-next')!;
+    const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let at = 0;
+
+    const left = (li: HTMLElement) => li.offsetLeft - lis[0].offsetLeft;
+    const sync = () => {
+      const max = track.scrollWidth - track.clientWidth;
+      const x = track.scrollLeft;
+      // 捲到底算最後一張；其餘取左緣最接近的一張
+      at = max > 0 && x >= max - 2 ? lis.length - 1 : lis.reduce((b, li, i) => (Math.abs(left(li) - x) < Math.abs(left(lis[b]) - x) ? i : b), 0);
+      fill.style.transform = `scaleX(${lis.length > 1 ? (at + 1) / lis.length : 1})`;
+      prev.disabled = x <= 2;
+      next.disabled = max <= 0 || x >= max - 2;
+    };
+    const go = (i: number) => {
+      const li = lis[Math.max(0, Math.min(lis.length - 1, i))];
+      track.scrollTo({ left: left(li), behavior: smooth ? 'smooth' : 'auto' });
+    };
+    let raf = 0;
+    track.addEventListener('scroll', () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(sync); }, { passive: true });
+    prev.addEventListener('click', () => go(at - 1));
+    next.addEventListener('click', () => go(at + 1));
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(at + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(at - 1); }
+    });
+    addEventListener('resize', sync);
+    sync();
+  });
+</script>

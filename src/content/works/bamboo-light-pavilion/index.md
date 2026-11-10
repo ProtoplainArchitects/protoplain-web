@@ -7,6 +7,7 @@ kind: work
 axis: "自然構築"
 location: "斗六糖廠竹創基地"
 cover: ./cover.jpg
+coverKind: render
 draft: false
 review: []
 ---
