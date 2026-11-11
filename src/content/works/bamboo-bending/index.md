@@ -12,6 +12,8 @@ review: []
 legacy:
   zh: "https://protoplain.format.com/13046043-copy-1"
   en: "https://protoplain.format.com/13805693-copy"
+captions:
+  drawing-03: "全區模型與等高線"
 ---
 
 概念說明 /\

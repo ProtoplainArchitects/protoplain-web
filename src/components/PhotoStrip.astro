@@ -14,12 +14,14 @@ const widths = (w: number) => (size === 'l' ? [640, 1000, 1400, 1800] : [320, 48
     {items.map((p, i) => (
       <li style={`--r:${(p.src.width / p.src.height).toFixed(4)}`}>
         <a href={p.full} data-lb={group} data-caption={p.label}>
-          <Image src={p.src} alt={`${title}：${p.label}`} widths={widths(p.src.width)} sizes={size === 'l' ? '90vw' : '50vw'} format="webp" loading={i < 2 ? 'eager' : 'lazy'} />
+          <Image src={p.src} alt={p.label ? `${title}：${p.label}` : title} widths={widths(p.src.width)} sizes={size === 'l' ? '90vw' : '50vw'} format="webp" loading={i < 2 ? 'eager' : 'lazy'} />
         </a>
-        <p class="ps-cap">
-          {p.tag && <span class="ps-tag">{p.tag}</span>}
-          {p.caption}
-        </p>
+        {(p.caption || p.tag) && (
+          <p class="ps-cap">
+            {p.tag && <span class="ps-tag">{p.tag}</span>}
+            {p.caption}
+          </p>
+        )}
       </li>
     ))}
   </ul>

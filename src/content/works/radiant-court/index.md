@@ -12,6 +12,19 @@ review: []
 legacy:
   zh: "https://protoplain.format.com/radiant-court"
   en: "https://protoplain.format.com/radiant-court-en"
+captions:
+  done-01: "一樓空間"
+  done-02: "客廳光的延展"
+  done-03: "天井錐形的天窗"
+  done-04: "時間的光"
+  done-05: "七樓層間的動線"
+  done-06: "七個樓層的關係"
+  done-07: "一樓空間，10 米 × 7 米的白牆"
+  done-08: "七個樓層的關係"
+  done-09: "正立面"
+  drawing-01: "模型"
+  drawing-02: "平面圖"
+  drawing-03: "剖面圖"
 ---
 
 一進家門，就能望見天井灑下的通透光線，\

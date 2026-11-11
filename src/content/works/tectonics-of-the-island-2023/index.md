@@ -12,6 +12,8 @@ review: []
 legacy:
   zh: "https://protoplain.format.com/2023-tectonics-of-the-island"
   en: "https://protoplain.format.com/2023-tectonics-of-the-island-en"
+captions:
+  drawing-03: "遊逛地圖"
 ---
 
 我們從山裏回來，\

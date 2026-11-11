@@ -25,6 +25,8 @@ const works = defineCollection({
       // draft: true 的作品只在 npm run dev 與 Cloudflare 預覽網址看得到，不進正式建置
       draft: z.boolean().default(false),
       review: z.array(z.string()).default([]),
+      // photos/ 裡照片的說明文字，鍵是檔名（不含 .jpg），例如 done-02；沒寫就不顯示
+      captions: z.record(z.string(), z.string()).default({}),
       legacy: z.object({ zh: z.url().nullable(), en: z.url().nullable() }).optional(),
     }),
 });

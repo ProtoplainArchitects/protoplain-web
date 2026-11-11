@@ -12,6 +12,8 @@ review: ["標題含業主姓氏"]
 legacy:
   zh: "https://protoplain.format.com/she-house-in-xiaogang"
   en: "https://protoplain.format.com/she-house-in-xiaogang-en"
+captions:
+  drawing-04: "立面圖"
 ---
 
 ##
