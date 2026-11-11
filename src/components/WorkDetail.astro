@@ -36,7 +36,7 @@ const source = build?.gallery.length
   : photosOf(work.id).map((p) => ({
       src: p.src,
       // 說明目前只有中文；英文頁不顯示
-      caption: lang === 'zh' ? (d.captions[p.key] ?? '') : '',
+      caption: lang === 'zh' ? (d.captions?.[p.key] ?? '') : '',
       kind: p.group === 'render' ? ('render' as const) : ('photo' as const),
       group: p.group === 'process' ? PROCESS : p.group === 'drawing' ? DRAWING : '完工',
     }));
