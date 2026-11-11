@@ -1,4 +1,5 @@
-// 作品頁的「構築過程影片／數位構築／組裝說明書／照片」區塊。只有列在這裡的作品才會出現這些區塊。
+// 作品頁的「構築過程影片／數位構築／組裝說明書／照片」區塊。只有列在這裡的作品才會出現影片、模型與說明書。
+// 其他作品的照片放在作品資料夾的 photos/，由 src/lib/photos.ts 依檔名讀取，不必登記在這裡。
 // 模型與 PDF 放在 public/works/<slug>/；說明書逐頁圖與照片放在作品資料夾，由 Astro 轉成 WebP。
 import type { ImageMetadata } from 'astro';
 import ssPoster from '../content/works/stillness-seats/video-poster.jpg';

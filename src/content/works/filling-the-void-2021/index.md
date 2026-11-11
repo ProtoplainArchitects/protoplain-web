@@ -12,6 +12,8 @@ review: []
 legacy:
   zh: "https://protoplain.format.com/2021-minearts-festival"
   en: "https://protoplain.format.com/2021-minearts-festival-en"
+captions:
+  drawing-01: "單元爆炸圖"
 ---
 
 「屋舍是礦城聚落的填充，人們離去、屋裡植物繁生，是山里的再填充。」\

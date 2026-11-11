@@ -12,6 +12,22 @@ review: []
 legacy:
   zh: "https://protoplain.format.com/unflavored"
   en: "https://protoplain.format.com/unflavored-en"
+captions:
+  done-02: "一樓用餐空間，利用六開柚木拉門讓室內外融為一體"
+  done-03: "一樓用餐空間，將六開門開啟時可以感受風的流動與植物的味道"
+  done-04: "中央天井，充滿著光與流動的空氣"
+  done-05: "主臥室，與觀風相互呼應"
+  done-06: "正立面"
+  done-07: "後院，室內外水平與垂直的延續性"
+  done-08: "換鞋區，利用自然素材，與天井做為心境轉換"
+  done-09: "觀風，我們能否感受到原本看不見的東西"
+  process-01: "觀風，施工過程"
+  done-10: "三樓進入洗衣工作空間之動線"
+  done-11: "空拍圖"
+  drawing-01: "全區模型"
+  drawing-02: "微塵概念剖面手稿"
+  drawing-03: "BB剖面圖"
+  drawing-04: "各層彩色平面圖"
 ---
 
 擁有覺察本質的能力，方能自信自在地品無味。\

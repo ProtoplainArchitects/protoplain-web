@@ -1,5 +1,5 @@
 ---
-// 作品頁。順序：封面 → 短文 → 完工 → 過程 → 構築 → 情境 → 資料 → 下一件；沒有資料的段落不出現。頁面上不放編號與張數。
+// 作品頁。順序：封面 → 短文 → 完工 → 過程 → 構築 → 圖面 → 情境 → 資料 → 下一件；沒有資料的段落不出現。頁面上不放編號與張數。
 // 內文（slot）最後一張清單視為作品資料，移到頁尾的「資料」段。
 import { Image, getImage } from 'astro:assets';
 import ConstructionVideo from './ConstructionVideo.astro';
@@ -8,6 +8,7 @@ import ManualReader from './ManualReader.astro';
 import Lightbox from './Lightbox.astro';
 import PhotoStrip from './PhotoStrip.astro';
 import type { Build } from '../data/builds';
+import { photosOf } from '../lib/photos';
 import { axisLabel, kindLabel, type Lang, type Work } from '../lib/works';
 
 interface Props {
@@ -28,24 +29,39 @@ const html = await Astro.slots.render('default');
 const hasFacts = /^[-*] /.test(body.trimEnd().split('\n').pop() ?? '');
 
 const PROCESS = '施工過程';
+const DRAWING = '圖面';
+// 照片來源：有模型的作品由 builds.ts 管理；其餘作品讀 photos/ 資料夾（檔名決定分組與順序，說明寫在 index.md 的 captions）
+const source = build?.gallery.length
+  ? build.gallery
+  : photosOf(work.id).map((p) => ({
+      src: p.src,
+      // 說明目前只有中文；英文頁不顯示
+      caption: lang === 'zh' ? (d.captions[p.key] ?? '') : '',
+      kind: p.group === 'render' ? ('render' as const) : ('photo' as const),
+      group: p.group === 'process' ? PROCESS : p.group === 'drawing' ? DRAWING : '完工',
+    }));
 const all = await Promise.all(
-  (build?.gallery ?? []).map(async (g) => ({
+  source.map(async (g) => ({
     ...g,
     full: (await getImage({ src: g.src, width: 1800, format: 'webp' })).src,
-    label: g.kind === 'render' ? `情境模擬：${g.caption}` : g.caption,
+    label: g.kind === 'render' ? (g.caption ? `${t('情境模擬', 'Rendering')}：${g.caption}` : t('情境模擬', 'Rendering')) : g.caption,
   })),
 );
 const process = all.filter((g) => g.kind === 'photo' && g.group === PROCESS);
+const drawings = all.filter((g) => g.kind === 'photo' && g.group === DRAWING);
 const renders = all.filter((g) => g.kind === 'render');
 // 完工以外的分組（例如細部）在說明前面標出組名
 const done = all
-  .filter((g) => g.kind === 'photo' && g.group !== PROCESS)
+  .filter((g) => g.kind === 'photo' && g.group !== PROCESS && g.group !== DRAWING)
   .map((g) => ({ ...g, tag: g.group === '完工' ? undefined : g.group }));
 
 const hasProcess = process.length > 0 || !!build?.video;
-// 完工照的第一張就是封面：封面直接用它（比 cover.jpg 的裁切版完整），點開進放大檢視；橫卷從第二張開始
-const hero = done[0];
+// 封面：完工第一張（比 cover.jpg 的裁切版完整），點開進放大檢視，橫卷從第二張開始。
+// 沒有完工照、只有情境模擬圖的作品，用第一張模擬圖當封面並標「情境模擬」。
+const heroIsRender = done.length === 0 && renders.length > 0;
+const hero = heroIsRender ? renders[0] : done[0];
 const rest = done.slice(1);
+const scenes = heroIsRender ? renders.slice(1) : renders;
 
 // 頁面上不出現編號與張數。level 是索引上那條橫線的長短（1 短、2 中、3 長），只暗示內容多寡；只有影片的過程段用播放記號
 const level = (n: number) => (n >= 10 ? 3 : n >= 5 ? 2 : n >= 2 ? 1 : 0);
@@ -53,7 +69,8 @@ const sections = [
   rest.length > 0 && { id: 'done', zh: '完工', en: 'Completed', level: level(done.length), play: false },
   hasProcess && { id: 'process', zh: '過程', en: 'Process', level: level(process.length), play: process.length === 0 },
   build && { id: 'tectonic', zh: '構築', en: 'Tectonics', level: level(build.steps.length), play: false },
-  renders.length > 0 && { id: 'scene', zh: '情境', en: 'Scenarios', level: level(renders.length), play: false },
+  drawings.length > 0 && { id: 'drawings', zh: '圖面', en: 'Drawings', level: level(drawings.length), play: false },
+  scenes.length > 0 && { id: 'scene', zh: '情境', en: 'Scenarios', level: level(renders.length), play: false },
   hasFacts && { id: 'facts', zh: '資料', en: 'Facts', level: 0, play: false },
 ].filter(Boolean) as { id: string; zh: string; en: string; level: number; play: boolean }[];
 // 只有一段時不出現段落索引
@@ -75,9 +92,10 @@ const label = (id: string) => { const x = sections.find((y) => y.id === id)!; re
 
   {hero ? (
     <figure class="work-cover">
-      <a href={hero.full} data-lb="done" data-caption={hero.label} aria-label={t('放大檢視完工照片', 'View photos')}>
+      <a href={hero.full} data-lb={heroIsRender ? 'scene' : 'done'} data-caption={hero.label} aria-label={t('放大檢視照片', 'View photos')}>
         <Image src={hero.src} alt={title} widths={[800, 1260, 1800, 2500].filter((w) => w < hero.src.width).concat(hero.src.width)} sizes="100vw" format="webp" loading="eager" />
       </a>
+      {heroIsRender && <figcaption class="work-cover-tag">{t('情境模擬', 'Rendering')}</figcaption>}
     </figure>
   ) : d.cover && (
     <figure class="work-cover">
@@ -118,8 +136,8 @@ const label = (id: string) => { const x = sections.find((y) => y.id === id)!; re
       </div>
       {process.length > 0 && (
         <>
-          <p class="work-lead" data-reveal>依施工先後由左到右。</p>
-          <PhotoStrip items={process} title={`${title}施工過程`} group="process" size="s" />
+          <p class="work-lead" data-reveal>{t('依施工先後由左到右。', 'In order of construction, left to right.')}</p>
+          <PhotoStrip items={process} title={`${title}${t("施工過程", " process")}`} group="process" size="s" />
         </>
       )}
       {build?.video && <div class:list={[process.length > 0 && 'work-gap']}><ConstructionVideo video={build.video} /></div>}
@@ -141,13 +159,22 @@ const label = (id: string) => { const x = sections.find((y) => y.id === id)!; re
     </section>
   )}
 
-  {renders.length > 0 && (
+  {drawings.length > 0 && (
+    <section class="work-sec" id="drawings">
+      <div class="work-sec-head" data-reveal>
+        <h2>{label('drawings')}</h2>
+      </div>
+      <PhotoStrip items={drawings} title={`${title}${t("圖面", " drawings")}`} group="drawings" size="s" />
+    </section>
+  )}
+
+  {scenes.length > 0 && (
     <section class="work-sec" id="scene">
       <div class="work-sec-head" data-reveal>
         <h2>{label('scene')}</h2>
       </div>
-      <p class="work-lead" data-reveal>情境模擬圖以模型為基礎合成，人物與場景不是實景照片，也不代表完工後的實際使用情形。</p>
-      <PhotoStrip items={renders} title={`${title}情境模擬`} group="scene" size="s" />
+      <p class="work-lead" data-reveal>{t('情境模擬圖以模型為基礎合成，人物與場景不是實景照片，也不代表完工後的實際使用情形。', 'Renderings are composed from the model. People and settings are not photographs and do not show how the place is actually used.')}</p>
+      <PhotoStrip items={scenes} title={`${title}${t("情境模擬", " renderings")}`} group="scene" size="s" />
     </section>
   )}
 
@@ -172,7 +199,7 @@ const label = (id: string) => { const x = sections.find((y) => y.id === id)!; re
     )}
   </nav>
 
-  {build && <Lightbox />}
+  {all.length > 0 && <Lightbox />}
 </article>
 
 <script>

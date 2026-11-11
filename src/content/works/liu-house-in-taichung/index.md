@@ -12,6 +12,14 @@ review: ["用語改寫", "標題含業主姓氏"]
 legacy:
   zh: "https://protoplain.format.com/liu-housein-taichung"
   en: "https://protoplain.format.com/liu-housein-taichung-en"
+captions:
+  done-01: "街道關係"
+  done-03: "立面"
+  done-05: "室內"
+  done-06: "屋頂花園"
+  done-07: "梯廳"
+  done-08: "窗邊光景"
+  done-09: "街屋關係"
 ---
 
 光合劉宅位在臺中後火車站30米寬主要幹道和20米寬次要道路節點上的轉角地，是臺灣都會區常見的商業街屋。在狹小且多邊形的轉角基地上，面對直曬的東南光、交通噪音和外在多元躁動，是本案想面對挑戰的課題。\

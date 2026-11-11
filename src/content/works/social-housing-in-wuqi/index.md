@@ -12,6 +12,9 @@ review: []
 legacy:
   zh: "https://protoplain.format.com/social-housing-in-wuqi"
   en: "https://protoplain.format.com/social-housing-in-wuqi-en"
+captions:
+  done-02: "住宅單元外立面深遮陽"
+  done-03: "南院觀景梯直通向上，將居民情誼牽繫在一起"
 ---
 
 梧棲三民段社會住宅，對我們來說是一次對於當代住宅空間的反省，我們提出了傍庭 ( bonding-space ) 的概念。\
