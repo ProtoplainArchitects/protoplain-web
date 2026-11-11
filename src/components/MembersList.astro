@@ -30,7 +30,6 @@ const names = (m: (typeof members)[number]) => (en ? [m.en, m.zh] : [m.zh, m.en]
 
 <div class="team-head">
   <h2>{en ? 'Team' : '團隊'}</h2>
-  <span class="pp-data">{String(team.length).padStart(2, '0')}</span>
 </div>
 <ul class="team">
   {team.map((m) => (
@@ -70,7 +69,7 @@ const names = (m: (typeof members)[number]) => (en ? [m.en, m.zh] : [m.zh, m.en]
   .role { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); margin: 0; }
   .bio { list-style: none; margin: 0; padding: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); line-height: 1.6; }
 
-  /* 主持與所務：白卡片、照片在左 */
+  /* 主持與所務：照片在左，與其他頁一樣只用細線分隔，不用卡片 */
   .leaders {
     list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0;
     display: flex; flex-wrap: wrap; gap: var(--pp-space-md);
@@ -78,17 +77,15 @@ const names = (m: (typeof members)[number]) => (en ? [m.en, m.zh] : [m.zh, m.en]
   .leader {
     flex: 1 1 480px; min-width: 0;
     display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--pp-space-md); align-items: start;
-    background: var(--pp-bg-card); border: var(--pp-border-width) solid var(--pp-line);
-    border-radius: var(--pp-radius-card); padding: var(--pp-space-md);
+    border-top: var(--pp-border-width) solid var(--pp-line); padding-top: var(--pp-space-md);
   }
   .leader-text { display: flex; flex-direction: column; gap: var(--pp-space-xs); }
   .leader .name { font-size: var(--pp-fs-h2); }
   .leader .bio { border-top: var(--pp-border-width) solid var(--pp-line); padding-top: var(--pp-space-sm); margin-top: var(--pp-space-xs); }
 
   /* 團隊：12 人，4／3／2 欄都能整除 */
-  .team-head { display: flex; justify-content: space-between; align-items: baseline; border-top: var(--pp-border-width) solid var(--pp-ink); padding-top: var(--pp-space-sm); margin-bottom: var(--pp-space-md); }
+  .team-head { display: flex; justify-content: space-between; align-items: baseline; border-top: var(--pp-border-width) solid var(--pp-line); padding-top: var(--pp-space-sm); margin-bottom: var(--pp-space-md); }
   .team-head h2 { font-size: var(--pp-fs-h3); margin: 0; }
-  .team-head .pp-data { color: var(--pp-ink-hint); }
   .team {
     list-style: none; margin: 0 0 var(--pp-space-xl); padding: 0;
     display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pp-space-lg) var(--pp-space-md);
@@ -104,7 +101,7 @@ const names = (m: (typeof members)[number]) => (en ? [m.en, m.zh] : [m.zh, m.en]
     .team { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pp-space-md) var(--pp-space-sm); }
   }
   @media (max-width: 480px) {
-    .leader { grid-template-columns: 120px minmax(0, 1fr); gap: var(--pp-space-sm); padding: var(--pp-space-sm); }
+    .leader { grid-template-columns: 120px minmax(0, 1fr); gap: var(--pp-space-sm); }
     .leader .name { font-size: var(--pp-fs-h3); }
   }
 

@@ -1,21 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
-import AxisColumns from '../components/AxisColumns.astro';
-import DotField from '../components/DotField.astro';
+import HomeStage from '../components/HomeStage.astro';
+import AwardsFeature from '../components/AwardsFeature.astro';
 import { getWorks } from '../lib/works';
 
 const works = await getWorks();
 ---
 <Base lang="zh" description="初樸建築師事務所，臺中豐原。竹、木、土自然材料的當代構築。">
-  <!-- 首頁｜開場短文三段，接雙軸延續：兩欄各自輪播，下接作品清單；最下方為歷年專案微塵 -->
-  <section class="home-intro" aria-labelledby="home-title">
-    <h1 id="home-title" class="visually-hidden">初樸建築師事務所</h1>
+  <!-- 首頁｜第一個畫面是人文、自然兩張滿版照片；往下是開場短文與得獎作品。時間軸與歷年專案在作品頁 -->
+  <h1 class="visually-hidden">初樸建築師事務所</h1>
+  <HomeStage works={works} lang="zh" />
+  <section class="home-intro" aria-label="關於初樸">
     <p data-reveal>在可見之外，<br />仍有暗物質與暗能量，<br />無形卻支撐著萬物的運行。</p>
     <p data-reveal>初樸關注的，也是這「之外」──<br />形體之外的光與氣，<br />建築之外的時間與生命。</p>
     <p data-reveal>在自然與人造之間，<br />我們以初樸之心，<br />尋回建築的本意。</p>
+    <p class="home-more" data-reveal><a href="/works/">看全部作品 →</a></p>
   </section>
-  <AxisColumns works={works} />
-  <div class="home-dots" data-reveal>
-    <DotField />
-  </div>
+  <AwardsFeature lang="zh" />
 </Base>

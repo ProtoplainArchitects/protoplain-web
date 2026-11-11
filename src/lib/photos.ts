@@ -21,3 +21,18 @@ for (const path of Object.keys(files).sort()) {
 }
 
 export const photosOf = (slug: string): Photo[] => bySlug[slug] ?? [];
+
+import { builds } from '../data/builds';
+import type { Work } from './works';
+
+/** 作品的代表圖：完工第一張；沒有完工照用第一張情境模擬圖（render: true）；都沒有才用 cover.jpg */
+export function heroOf(w: Work): { src: ImageMetadata; render: boolean } | null {
+  const g = builds[w.id]?.gallery.find((x) => x.kind === 'photo' && x.group !== '施工過程' && x.group !== '圖面');
+  if (g) return { src: g.src, render: false };
+  const ps = photosOf(w.id);
+  const done = ps.find((p) => p.group === 'done');
+  if (done) return { src: done.src, render: false };
+  const render = ps.find((p) => p.group === 'render');
+  if (render) return { src: render.src, render: true };
+  return w.data.cover ? { src: w.data.cover, render: w.data.coverKind === 'render' } : null;
+}

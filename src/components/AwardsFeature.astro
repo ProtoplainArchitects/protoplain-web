@@ -1,0 +1,57 @@
+---
+// 首頁「獲獎」：已公開、有作品頁的得獎作品，一張代表照＋作品名＋最近一項獎。不寫獎項數量。
+import { Image } from 'astro:assets';
+import { awards } from '../data/awards';
+import { heroOf } from '../lib/photos';
+import { getEnglishIds, getWorks, workUrl, type Lang } from '../lib/works';
+
+interface Props { lang: Lang; limit?: number }
+const { lang, limit = 4 } = Astro.props;
+const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
+const works = new Map((await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, w]));
+const enIds = await getEnglishIds();
+const items = awards
+  .filter((g) => g.slug && works.has(g.slug))
+  .map((g) => {
+    const w = works.get(g.slug!)!;
+    return {
+      name: lang === 'en' ? g.en : g.zh,
+      award: lang === 'en' ? g.items[0].en : g.items[0].zh,
+      href: lang === 'en' && !enIds.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang),
+      hero: heroOf(w),
+    };
+  })
+  .filter((x) => x.hero)
+  .slice(0, limit);
+---
+<section class="af" aria-labelledby="af-title">
+  <div class="section-head" data-reveal>
+    <h2 id="af-title">{t('獲獎', 'Awards')}</h2>
+    <a href={lang === 'en' ? '/en/awards/' : '/awards/'}>{t('全部獲獎 →', 'All awards →')}</a>
+  </div>
+  <ul class="af-list">
+    {items.map((x) => (
+      <li data-reveal>
+        <a href={x.href}>
+          <div class="af-img"><Image src={x.hero!.src} alt="" widths={[480, 800]} sizes="(max-width: 760px) 50vw, 25vw" format="webp" />{x.hero!.render && <span class="af-tag">{t('情境模擬', 'Rendering')}</span>}</div>
+          <p class="af-name">{x.name}</p>
+          <p class="af-award">{x.award}</p>
+        </a>
+      </li>
+    ))}
+  </ul>
+</section>
+
+<style>
+  .af-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pp-space-md) var(--pp-space-xs); }
+  .af-list a { display: block; color: var(--pp-ink); }
+  .af-list a:hover { text-decoration: none; }
+  .af-tag { position: absolute; left: var(--pp-space-xs); bottom: var(--pp-space-xs); padding: 1px 6px; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); background: var(--pp-bg-card); border-radius: var(--pp-radius-control); }
+  .af-img { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .af-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
+  .af-list a:hover .af-img img { transform: scale(1.02); }
+  .af-name { margin: var(--pp-space-xs) 0 2px; }
+  .af-award { margin: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  @media (max-width: 760px) { .af-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (prefers-reduced-motion: reduce) { .af-img img { transition: none; } }
+</style>

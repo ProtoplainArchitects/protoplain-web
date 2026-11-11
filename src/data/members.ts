@@ -79,6 +79,8 @@ export const contact = {
   instagram: { href: 'https://www.instagram.com/pparchitects_tw/', label: '@pparchitects_tw' },
   // 舊站表單連到 Google 表單的編輯網址，公開填寫網址回 404；取得正確網址前不顯示按鈕
   formUrl: null as string | null,
+  // 聯繫頁配圖：取作品 photos/ 裡的一張（之後有事務所外觀照可換）
+  photo: { slug: 'morning-mist-pavilion', key: 'done-01', zh: '招霧亭', en: 'Morning Mist Pavilion' },
   introZh: ['以建築為始，', '我們關心水文、土地、風動與人，', '也能聊聊展覽、景觀、木與竹……', '或是一場採訪、分享的邀約，', '還有那些仍在醞釀的想法。'],
   introEn: [
     'Beginning with architecture,',

@@ -1,12 +1,17 @@
 ---
+import { Image } from 'astro:assets';
 import { awards, awardsIntro } from '../data/awards';
+import { heroOf } from '../lib/photos';
 import { getWorks, getEnglishIds, workUrl, type Lang } from '../lib/works';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 
 // 只連結正式建置裡存在的作品頁（draft 不連）；英文版另需有英文頁
-const published = new Set((await getWorks()).filter((w) => !w.data.draft).map((w) => w.id));
+const pub = new Map((await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, w]));
+const published = new Set(pub.keys());
+// 有公開作品頁的才放代表照；draft 作品只列名稱
+const heroFor = (slug: string | null) => (slug && pub.has(slug) ? heroOf(pub.get(slug)!) : null);
 const enIds = await getEnglishIds();
 const hrefFor = (slug: string | null) => {
   if (!slug || !published.has(slug)) return null;
@@ -15,11 +20,20 @@ const hrefFor = (slug: string | null) => {
 ---
 <p class="lead">{awardsIntro[lang]}</p>
 <div class="awards">
-  {awards.map((g) => {
+  {/* 有公開作品頁與代表照的排在前面，其餘依原順序接在後面 */}
+  {[...awards].sort((a, b) => Number(!heroFor(a.slug)) - Number(!heroFor(b.slug))).map((g) => {
     const href = hrefFor(g.slug);
+    const hero = heroFor(g.slug);
     const name = lang === 'en' ? g.en : g.zh;
     return (
-      <section class="award-group">
+      <section class:list={['award-group', !hero && 'no-img']} data-reveal>
+        <div class="award-img">
+          {hero && (
+            <a href={href!} tabindex="-1" aria-hidden="true">
+              <Image src={hero.src} alt="" widths={[320, 640]} sizes="(max-width: 640px) 40vw, 200px" format="webp" />
+            </a>
+          )}
+        </div>
         <h2 class="award-work">{href ? <a href={href}>{name}</a> : name}</h2>
         <ul class="award-items">
           {g.items.map((a) => <li>{lang === 'en' ? a.en : a.zh}</li>)}
@@ -30,17 +44,28 @@ const hrefFor = (slug: string | null) => {
 </div>
 
 <style>
-  .awards { border-top: var(--pp-border-width) solid var(--pp-ink); }
+  /* 每件作品一列：代表照、作品名、獎項；沒有公開作品頁的只留名稱與獎項 */
+  .awards { border-top: var(--pp-border-width) solid var(--pp-line); }
   .award-group {
-    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--pp-space-md);
-    padding: var(--pp-space-md) 0;
-    border-bottom: var(--pp-border-width) solid var(--pp-line);
+    display: grid; grid-template-columns: 200px minmax(0, 1fr) minmax(0, 2fr); gap: var(--pp-space-md); align-items: start;
+    padding: var(--pp-space-md) 0; border-bottom: var(--pp-border-width) solid var(--pp-line);
   }
-  .award-work { font-size: var(--pp-fs-h3); margin: 0; }
-  .award-work a { color: var(--pp-ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: var(--pp-border-width); }
+  .no-img .award-img { min-height: 0; }
+  .award-img a { display: block; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .award-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
+  .award-group:hover .award-img img { transform: scale(1.02); }
+  .award-work { font-size: var(--pp-fs-h3); font-weight: var(--pp-fw-regular); margin: 0; }
+  .award-work a { color: var(--pp-ink); }
+  .award-work a::after { content: ' →'; display: inline-block; transition: transform 0.3s ease; }
+  .award-work a:hover { text-decoration: none; }
+  .award-work a:hover::after { transform: translateX(4px); }
   .award-items { list-style: none; margin: 0; padding: 0; }
-  .award-items li { font-size: var(--pp-fs-caption); padding: 2px 0; }
+  .award-items li { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); padding: 2px 0; }
   @media (max-width: 640px) {
-    .award-group { grid-template-columns: minmax(0, 1fr); gap: var(--pp-space-xs); }
+    .award-group { grid-template-columns: 40% minmax(0, 1fr); gap: var(--pp-space-xs) var(--pp-space-sm); }
+    .award-img { grid-row: span 2; }
+    .no-img { grid-template-columns: minmax(0, 1fr); }
+    .no-img .award-img { display: none; }
   }
+  @media (prefers-reduced-motion: reduce) { .award-img img, .award-work a::after { transition: none; } }
 </style>

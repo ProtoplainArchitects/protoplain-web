@@ -1,38 +1,59 @@
 ---
-import { contact } from '../data/members';
+// 聯繫：左邊一張作品照，右邊開場短文與聯繫資料。地圖用連結開 Google 地圖，不嵌入，頁面保持純靜態。
+// 電話、電子信箱尚未提供，取得事務所公用資料前不顯示。
+import { Image } from 'astro:assets';
+import { contact, affiliates } from '../data/members';
+import { photosOf } from '../lib/photos';
 import type { Lang } from '../lib/works';
 
 interface Props { lang: Lang }
 const { lang } = Astro.props;
 const en = lang === 'en';
+const photo = photosOf(contact.photo.slug).find((p) => p.key === contact.photo.key);
+const map = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.addressZh)}`;
 ---
 <div class="contact">
-  <p class="contact-intro">
-    {(en ? contact.introEn : contact.introZh).map((l) => <>{l}<br /></>)}
-  </p>
-  <dl class="contact-facts">
-    <div>
-      <dt>{en ? 'Address' : '地址'}</dt>
-      <dd>{en ? contact.addressEn : contact.addressZh}</dd>
-    </div>
-    <div>
-      <dt>Instagram</dt>
-      <dd><a href={contact.instagram.href} rel="noopener">{contact.instagram.label}</a></dd>
-    </div>
-  </dl>
-  {contact.formUrl && (
-    <a class="pp-btn contact-form" href={contact.formUrl} rel="noopener">{en ? 'Get in touch' : '填寫聯繫表單'}</a>
-  )}
+  <figure class="contact-img">
+    {photo && <Image src={photo.src} alt="" widths={[640, 1000, 1400]} sizes="(max-width: 760px) 100vw, 50vw" format="webp" loading="eager" />}
+    <figcaption>{en ? contact.photo.en : contact.photo.zh}</figcaption>
+  </figure>
+  <div class="contact-text">
+    <p class="contact-intro">
+      {(en ? contact.introEn : contact.introZh).map((l) => <>{l}<br /></>)}
+    </p>
+    <dl class="contact-facts">
+      <div>
+        <dt>{en ? 'Studio' : '事務所'}</dt>
+        <dd>{en ? 'ProtoPlain Architects' : '初樸建築師事務所'}<br /><span class="sub">{en ? affiliates[0].en : affiliates[0].zh}</span></dd>
+      </div>
+      <div>
+        <dt>{en ? 'Address' : '地址'}</dt>
+        <dd>{en ? contact.addressEn : contact.addressZh}<br /><a class="sub" href={map} rel="noopener">{en ? 'Open in Google Maps' : '在 Google 地圖開啟'} →</a></dd>
+      </div>
+      <div>
+        <dt>Instagram</dt>
+        <dd><a href={contact.instagram.href} rel="noopener">{contact.instagram.label}</a></dd>
+      </div>
+    </dl>
+    {contact.formUrl && (
+      <a class="pp-btn contact-form" href={contact.formUrl} rel="noopener">{en ? 'Get in touch' : '填寫聯繫表單'}</a>
+    )}
+  </div>
 </div>
 
 <style>
-  .contact { max-width: 680px; }
-  .contact-intro { line-height: 2; margin-bottom: var(--pp-space-xl); }
-  .contact-facts { margin: 0 0 var(--pp-space-lg); border-top: var(--pp-border-width) solid var(--pp-ink); }
-  .contact-facts div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--pp-space-md); padding: var(--pp-space-sm) 0; border-bottom: var(--pp-border-width) solid var(--pp-line); }
+  .contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--pp-space-xl); align-items: start; }
+  .contact-img { margin: 0; }
+  .contact-img img { width: 100%; height: auto; max-height: 72vh; object-fit: cover; display: block; border-radius: var(--pp-radius-control); }
+  .contact-img figcaption { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); padding-top: var(--pp-space-xs); }
+  .contact-intro { line-height: 2; margin: 0 0 var(--pp-space-xl); }
+  .contact-facts { margin: 0 0 var(--pp-space-lg); border-top: var(--pp-border-width) solid var(--pp-line); }
+  .contact-facts div { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--pp-space-md); padding: var(--pp-space-sm) 0; border-bottom: var(--pp-border-width) solid var(--pp-line); }
   .contact-facts dt { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
   .contact-facts dd { margin: 0; }
-  .contact-facts a { color: var(--pp-ink); text-decoration: underline; text-underline-offset: 3px; }
+  .contact-facts a { color: var(--pp-ink); }
+  .contact-facts .sub { font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
   .contact-form { display: inline-block; color: var(--pp-ink); }
   .contact-form:hover { text-decoration: none; border-color: var(--pp-ink); }
+  @media (max-width: 760px) { .contact { grid-template-columns: 1fr; gap: var(--pp-space-lg); } }
 </style>
