@@ -1,0 +1,110 @@
+---
+// 首頁第一個畫面：一行宣言，下面人文構築、自然構築兩張滿版照片並排，剛好填滿一個畫面，不用捲就看得到。
+// 每欄慢速輪播該軸已完工作品的代表照（只放實景照，不放情境模擬圖），兩欄錯開；滑過或聚焦時暫停。
+import { Image } from 'astro:assets';
+import { axisLabel, workUrl, type Lang, type Work } from '../lib/works';
+import { heroOf } from '../lib/photos';
+
+interface Props { works: Work[]; lang: Lang; enIds?: Set<string> }
+const { works, lang, enIds } = Astro.props;
+const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
+const href = (w: Work) => (lang === 'en' && !enIds?.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang));
+const title = (w: Work) => (lang === 'en' ? (w.data.titleEn ?? w.data.title) : w.data.title);
+
+const cols = (['人文構築', '自然構築'] as const).map((axis) => ({
+  axis,
+  label: axisLabel[axis][lang],
+  slides: works
+    .filter((w) => w.data.kind === 'work' && w.data.axis === axis)
+    .map((w) => ({ w, hero: heroOf(w) }))
+    .filter((x) => x.hero && !x.hero.render),
+}));
+---
+<section class="hs" aria-label={t('人文構築與自然構築', 'Artificial and nature elements')}>
+  <p class="hs-line" data-reveal>{t('形體之外的光與氣，建築之外的時間與生命。', 'Light and air beyond form; time and life beyond the building.')}</p>
+  <div class="hs-grid">
+    {cols.map((c) => (
+      <div class="hs-col" data-carousel>
+        <div class="hs-frame">
+          {c.slides.map(({ w, hero }, i) => (
+            <a class:list={['hs-slide', i === 0 && 'is-on']} href={href(w)} tabindex={i === 0 ? 0 : -1} aria-hidden={i === 0 ? undefined : 'true'}>
+              <Image src={hero!.src} alt={title(w)} widths={[640, 960, 1400, 1800]} sizes="(max-width: 760px) 100vw, 50vw" format="webp" loading={i === 0 ? 'eager' : 'lazy'} />
+            </a>
+          ))}
+        </div>
+        <div class="hs-meta">
+          <a class="hs-axis" href={`${lang === 'en' ? '/en/works/' : '/works/'}?axis=${c.axis}`}>{c.label}</a>
+          <div class="hs-cap">
+            {c.slides.map(({ w }, i) => (
+              <p class:list={['hs-cap-item', i === 0 && 'is-on']}>{title(w)}<span class="pp-data">{w.data.year}</span></p>
+            ))}
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  /* 第一個畫面：頁首約 97px＋間距、宣言一行、圖說一行，其餘全給照片 */
+  .hs { --hs-offset: 250px; margin-top: calc(var(--pp-space-xl) * -0.5); }
+  .hs-line { font-size: var(--pp-fs-h2); letter-spacing: 0.12em; color: var(--pp-ink); margin: 0 0 var(--pp-space-md); }
+  .hs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pp-space-xs); }
+  .hs-frame {
+    position: relative; height: calc(100svh - var(--hs-offset)); min-height: 320px; max-height: 960px;
+    overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub);
+  }
+  .hs-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.4s ease; }
+  .hs-slide.is-on { opacity: 1; z-index: 1; }
+  .hs-slide img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.04); transition: transform 8s linear; }
+  .hs-slide.is-on img { transform: scale(1); }
+
+  /* 圖說一列：軸名（墨色）靠左，作品名與年份（淡灰）緊接在後，同一條基線；不靠右，避免和隔壁欄的軸名擠在中縫 */
+  .hs-meta { display: flex; align-items: center; gap: var(--pp-space-md); height: 20px; margin-top: var(--pp-space-xs); font-size: var(--pp-fs-caption); line-height: 20px; }
+  .hs-axis { color: var(--pp-ink); white-space: nowrap; }
+  .hs-axis::after { content: '→'; display: inline-block; margin-left: 6px; transition: transform 0.3s ease; }
+  .hs-axis:hover { text-decoration: none; }
+  .hs-axis:hover::after { transform: translateX(4px); }
+  .hs-cap { position: relative; flex: 1; min-width: 0; height: 20px; }
+  .hs-cap-item { position: absolute; inset: 0; margin: 0; display: flex; gap: var(--pp-space-xs); color: var(--pp-ink-hint); opacity: 0; transition: opacity 0.6s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hs-cap-item.is-on { opacity: 1; }
+
+  @media (max-width: 760px) {
+    .hs-grid { grid-template-columns: 1fr; gap: var(--pp-space-md); }
+    .hs-frame { height: 52svh; min-height: 260px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hs-slide, .hs-cap-item, .hs-slide img, .hs-axis::after { transition: none; }
+    .hs-slide img { transform: none; }
+  }
+</style>
+
+<script>
+  // 每 7 秒換一張，兩欄錯開 3.5 秒；滑過或聚焦時暫停，離開畫面時停止；系統設定減少動態時不自動換
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll<HTMLElement>('.hs [data-carousel]').forEach((root, ci) => {
+    const slides = Array.from(root.querySelectorAll<HTMLAnchorElement>('.hs-slide'));
+    const caps = Array.from(root.querySelectorAll<HTMLElement>('.hs-cap-item'));
+    if (slides.length < 2) return;
+    let i = 0, timer = 0, paused = false, visible = true;
+    const go = (n: number) => {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, k) => {
+        s.classList.toggle('is-on', k === i);
+        s.tabIndex = k === i ? 0 : -1;
+        if (k === i) s.removeAttribute('aria-hidden'); else s.setAttribute('aria-hidden', 'true');
+      });
+      caps.forEach((c, k) => c.classList.toggle('is-on', k === i));
+    };
+    const schedule = (delay = 7000) => {
+      clearTimeout(timer);
+      if (!reduce && !paused && visible) timer = window.setTimeout(() => { go(i + 1); schedule(); }, delay);
+    };
+    root.addEventListener('mouseenter', () => { paused = true; clearTimeout(timer); });
+    root.addEventListener('mouseleave', () => { paused = false; schedule(); });
+    root.addEventListener('focusin', () => { paused = true; clearTimeout(timer); });
+    root.addEventListener('focusout', () => { paused = false; schedule(); });
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) schedule(); else clearTimeout(timer); }).observe(root);
+    schedule(7000 + ci * 3500);
+  });
+</script>

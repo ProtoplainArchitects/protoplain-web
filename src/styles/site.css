@@ -20,7 +20,9 @@ main { flex: 1; width: 100%; padding: 0 var(--pp-space-md) var(--pp-space-xl); }
   padding: var(--pp-space-md);
 }
 .site-header { border-bottom: var(--pp-border-width) solid var(--pp-line); margin-bottom: var(--pp-space-xl); }
-.site-footer { border-top: var(--pp-border-width) solid var(--pp-line); font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+.site-footer { border-top: var(--pp-border-width) solid var(--pp-line); font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); }
+/* 版權：年份與兩家公司名同一行、淡灰小字，窄螢幕自動換行 */
+.foot { margin: 0; display: flex; flex-wrap: wrap; gap: 2px var(--pp-space-sm); }
 
 .brand { color: var(--pp-ink); display: flex; flex-direction: column; line-height: 1.3; }
 .brand:hover { color: var(--pp-ink); text-decoration: none; }
@@ -69,7 +71,8 @@ nav a.lang {
 }
 .tile a { color: var(--pp-ink); display: block; }
 .tile a:hover { text-decoration: none; }
-.tile-img { aspect-ratio: 4 / 3; background: var(--pp-bg-card-sub); overflow: hidden; border-radius: var(--pp-radius-control); }
+.tile-tag { position: absolute; left: var(--pp-space-xs); bottom: var(--pp-space-xs); padding: 1px 6px; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); background: var(--pp-bg-card); border-radius: var(--pp-radius-control); }
+.tile-img { position: relative; aspect-ratio: 4 / 3; background: var(--pp-bg-card-sub); overflow: hidden; border-radius: var(--pp-radius-control); }
 .tile-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; }
 .tile a:hover .tile-img img { opacity: 0.88; }
 .tile-meta { display: flex; justify-content: space-between; gap: var(--pp-space-sm); padding-top: var(--pp-space-xs); }
@@ -161,12 +164,14 @@ nav a.lang {
   .hero { padding: var(--pp-space-md) 0 var(--pp-space-xl); }
 }
 
-/* 首頁（C 案試作） */
+/* 首頁：第一個畫面是兩張滿版照片（HomeStage），往下是開場短文與得獎作品 */
 /* 開場短文：三段各自浮現，只用字距與行距，不放大字 */
-.home-intro { padding: var(--pp-space-lg) 0 calc(var(--pp-space-xl) * 1.5); }
+.home-intro { padding: calc(var(--pp-space-xl) * 2) 0 calc(var(--pp-space-xl) * 2); }
 .home-intro p { font-size: var(--pp-fs-h2); line-height: 2.1; letter-spacing: 0.08em; color: var(--pp-ink); margin: 0 0 var(--pp-space-lg); }
 .home-intro p:last-child { margin-bottom: 0; }
-.home-dots { margin-top: calc(var(--pp-space-xl) * 2); }
+.home-more { font-size: var(--pp-fs-caption); }
+.works-dots { margin-top: calc(var(--pp-space-xl) * 2); }
+.home-more a { color: var(--pp-ink); }
 
 /* 輕微動態：換頁淡入淡出、區塊第一次進畫面時浮現。系統設定減少動態時全部關閉 */
 @view-transition { navigation: auto; }

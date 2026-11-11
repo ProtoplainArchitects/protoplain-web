@@ -1,0 +1,189 @@
+---
+// 作品頁的共用時間軸：一條年份線，人文構築排在線上、自然構築排在線下，未分軸的作品是線上的小方點。
+// 每一點是一件作品，外圈是得獎作品。右側台灣簡圖標出同一批作品的位置，滑過時間軸或地圖上的點，兩邊同時標示，
+// 左側預覽換成那件作品的代表照，點下去進作品頁。不寫件數。
+import { getImage } from 'astro:assets';
+import { awards } from '../data/awards';
+import { places, taiwanOutline } from '../data/places';
+import { heroOf } from '../lib/photos';
+import { workUrl, type Lang, type Work } from '../lib/works';
+
+interface Props { works: Work[]; lang: Lang; enIds?: Set<string> }
+const { works, lang, enIds } = Astro.props;
+const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
+const awarded = new Set(awards.map((a) => a.slug).filter(Boolean));
+
+const list = await Promise.all(
+  works
+    .filter((w) => w.data.kind === 'work')
+    .map(async (w) => {
+      const hero = heroOf(w);
+      return {
+        id: w.id,
+        year: w.data.year,
+        axis: w.data.axis,
+        title: lang === 'en' ? (w.data.titleEn ?? w.data.title) : w.data.title,
+        href: lang === 'en' && !enIds?.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang),
+        img: hero ? (await getImage({ src: hero.src, width: 720, format: 'webp' })).src : '',
+        render: hero?.render ?? false,
+        award: awarded.has(w.id),
+      };
+    }),
+);
+const years: number[] = [];
+for (let y = Math.min(...list.map((x) => x.year)); y <= Math.max(...list.map((x) => x.year)); y++) years.push(y);
+const at = (y: number, axis: string | null) => list.filter((x) => x.year === y && x.axis === axis);
+const first = list[0];
+
+// 簡圖投影：經度乘上 cos(23.6°) 修正東西向比例，1 度 ≈ 100 單位
+const px = ([lat, lng]: [number, number]) => [((lng - 119.95) * 91.6).toFixed(1), ((25.4 - lat) * 100).toFixed(1)].map(Number);
+const outline = taiwanOutline.map((p) => px(p).join(',')).join(' ');
+// 同一地點有多件作品時，沿小圓周錯開，避免完全疊在一起
+const seen = new Map<string, number>();
+const pins = list
+  .filter((x) => places[x.id])
+  .map((x) => {
+    const key = places[x.id].join(',');
+    const k = seen.get(key) ?? 0;
+    seen.set(key, k + 1);
+    const [cx, cy] = px(places[x.id]);
+    const a = k * 2.4;
+    return { ...x, cx: cx + (k ? Math.cos(a) * 3.2 * Math.sqrt(k) : 0), cy: cy + (k ? Math.sin(a) * 3.2 * Math.sqrt(k) : 0) };
+  });
+const axisName = (a: string | null) => (a === '人文構築' ? t('人文構築', 'Artificial') : a === '自然構築' ? t('自然構築', 'Nature') : t('未分軸', 'Unassigned'));
+---
+<section class="tl" aria-label={t('作品時間軸', 'Timeline of works')} data-reveal>
+  <figure class="tl-preview" aria-hidden="true">
+    <div class="tl-pimg"><img src={first?.img} alt="" /></div>
+    <figcaption>
+      <span class="tl-ptitle">{first?.title}</span>
+      <span class="tl-pmeta"><span class="pp-data tl-pyear">{first?.year}</span><span class="tl-paxis">{axisName(first?.axis ?? null)}</span><span class="tl-prender" hidden={!first?.render}>{t('情境模擬', 'Rendering')}</span></span>
+    </figcaption>
+  </figure>
+
+  <div class="tl-chart">
+    <div class="tl-lanes" aria-hidden="true">
+      <span>{t('人文構築', 'Artificial')}</span>
+      <span>{t('自然構築', 'Nature')}</span>
+    </div>
+    <div class="tl-scroll">
+      <ol class="tl-years" style={`--n:${years.length}`}>
+        {years.map((y) => (
+          <li class="tl-year">
+            <div class="tl-up">
+              {at(y, '人文構築').map((x) => <a class:list={['tl-dot', x.award && 'is-award']} href={x.href} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
+            </div>
+            <div class="tl-mid">
+              {at(y, null).map((x) => <a class:list={['tl-dot', 'is-free', x.award && 'is-award']} href={x.href} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
+            </div>
+            <div class="tl-down">
+              {at(y, '自然構築').map((x) => <a class:list={['tl-dot', x.award && 'is-award']} href={x.href} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
+            </div>
+            <span class="pp-data tl-y">{y}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
+    <p class="tl-legend">
+      <span><i class="tl-key"></i>{t('作品', 'Work')}</span>
+      <span><i class="tl-key is-award"></i>{t('得獎', 'Awarded')}</span>
+      <span><i class="tl-key is-free"></i>{t('未分軸', 'Unassigned')}</span>
+    </p>
+  </div>
+
+  <figure class="tl-map" aria-label={t('作品位置簡圖', 'Map of works')}>
+    <svg viewBox="0 0 192 360" role="img">
+      <title>{t('台灣作品位置簡圖', 'Works across Taiwan')}</title>
+      <polygon class="tl-land" points={outline} />
+      {pins.map((x) => (
+        <a href={x.href} class:list={['tl-pin', x.award && 'is-award']} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''} aria-label={`${x.title} ${x.year}`}>
+          {x.award && <circle class="tl-pin-ring" cx={x.cx} cy={x.cy} r="5" />}
+          <circle class="tl-pin-dot" cx={x.cx} cy={x.cy} r={x.axis ? 2.6 : 2} />
+        </a>
+      ))}
+    </svg>
+    <figcaption>{t('位置為約略標示', 'Approximate locations')}</figcaption>
+  </figure>
+</section>
+
+<style>
+  .tl { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2.4fr) 150px; gap: var(--pp-space-lg); align-items: end; margin-bottom: calc(var(--pp-space-xl) * 1.5); }
+  .tl-preview { margin: 0; }
+  .tl-pimg { aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .tl-pimg img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.25s ease; }
+  .tl-preview figcaption { display: flex; justify-content: space-between; gap: var(--pp-space-sm); padding-top: var(--pp-space-xs); font-size: var(--pp-fs-caption); }
+  .tl-ptitle { color: var(--pp-ink); }
+  .tl-pmeta { display: flex; gap: var(--pp-space-xs); color: var(--pp-ink-sub); white-space: nowrap; }
+
+  .tl-chart { position: relative; padding-left: 64px; min-width: 0; }
+  .tl-lanes { position: absolute; left: 0; top: 0; bottom: 48px; display: flex; flex-direction: column; justify-content: space-between; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .tl-scroll { overflow-x: auto; scrollbar-width: none; }
+  .tl-scroll::-webkit-scrollbar { display: none; }
+  .tl-years { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(40px, 1fr)); min-width: calc(var(--n) * 40px); }
+  /* 上下兩條各留五個點的高度，中間一條 0.5px 年份線 */
+  .tl-year { display: grid; grid-template-rows: 112px 20px 112px auto; justify-items: center; }
+  .tl-up { display: flex; flex-direction: column-reverse; align-items: center; gap: 6px; padding-bottom: 6px; }
+  .tl-down { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 6px; }
+  .tl-mid { align-self: stretch; justify-self: stretch; display: flex; justify-content: center; align-items: center; gap: 3px; border-top: var(--pp-border-width) solid var(--pp-line-strong); margin-top: 10px; transform: translateY(-50%); }
+  .tl-y { font-size: 11px; color: var(--pp-ink-hint); padding-top: var(--pp-space-xs); }
+
+  .tl-dot {
+    display: block; width: 12px; height: 12px; border-radius: 50%; background: var(--pp-ink-sub);
+    font-size: 0; color: transparent; overflow: hidden; position: relative; transition: background 0.2s, transform 0.2s;
+  }
+  .tl-dot.is-free { width: 8px; height: 8px; border-radius: 1px; background: var(--pp-line-strong); }
+  .tl-dot.is-award { overflow: visible; }
+  .tl-dot.is-award::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: var(--pp-border-width) solid var(--pp-ink); }
+  .tl-dot:hover, .tl-dot:focus-visible, .tl-dot.is-on { background: var(--pp-ink); transform: scale(1.25); text-decoration: none; }
+
+  .tl-legend { display: flex; gap: var(--pp-space-md); margin: var(--pp-space-sm) 0 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .tl-legend span { display: flex; align-items: center; gap: 6px; }
+  .tl-key { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pp-ink-sub); position: relative; }
+  .tl-key.is-award { background: none; border: var(--pp-border-width) solid var(--pp-ink); width: 12px; height: 12px; }
+  .tl-key.is-free { border-radius: 1px; width: 6px; height: 6px; background: var(--pp-line-strong); }
+
+  .tl-map { margin: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; }
+  .tl-map svg { width: 100%; height: auto; max-height: 300px; display: block; overflow: visible; }
+  .tl-land { fill: var(--pp-bg-card-sub); stroke: var(--pp-line-strong); stroke-width: 0.5; stroke-linejoin: round; }
+  .tl-pin-dot { fill: var(--pp-ink-sub); transition: fill 0.2s; }
+  .tl-pin-ring { fill: none; stroke: var(--pp-ink); stroke-width: 0.5; }
+  .tl-pin:hover .tl-pin-dot, .tl-pin:focus-visible .tl-pin-dot, .tl-pin.is-on .tl-pin-dot { fill: var(--pp-ink); }
+  .tl-pin.is-on .tl-pin-dot { r: 4px; }
+  .tl-map figcaption { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); padding-top: var(--pp-space-xs); }
+
+  @media (max-width: 1100px) {
+    .tl { grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr) 120px; }
+  }
+  @media (max-width: 760px) {
+    .tl { grid-template-columns: 1fr 120px; }
+    .tl-preview { grid-column: 1 / -1; }
+    .tl-chart { grid-column: 1 / 2; }
+    .tl-preview { max-width: 360px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .tl-dot, .tl-pimg img { transition: none; } }
+</style>
+
+<script>
+  // 滑過或聚焦時間軸或地圖上的點時，左側預覽換成那件作品；離開時停在最後看的那件
+  document.querySelectorAll<HTMLElement>('.tl').forEach((tl) => {
+    const img = tl.querySelector<HTMLImageElement>('.tl-pimg img')!;
+    const title = tl.querySelector<HTMLElement>('.tl-ptitle')!;
+    const year = tl.querySelector<HTMLElement>('.tl-pyear')!;
+    const axis = tl.querySelector<HTMLElement>('.tl-paxis')!;
+    const render = tl.querySelector<HTMLElement>('.tl-prender')!;
+    const dots = Array.from(tl.querySelectorAll<HTMLAnchorElement | SVGAElement>('.tl-dot, .tl-pin'));
+    const show = (d: HTMLAnchorElement | SVGAElement) => {
+      // 時間軸上的點和地圖上的點用同一個作品 id 對應，兩邊一起標示
+      dots.forEach((x) => x.classList.toggle('is-on', x.dataset.id === d.dataset.id));
+      if (d.dataset.img && img.getAttribute('src') !== d.dataset.img) img.src = d.dataset.img;
+      title.textContent = d.dataset.title ?? '';
+      year.textContent = d.dataset.year ?? '';
+      axis.textContent = d.dataset.axis ?? '';
+      render.hidden = !d.dataset.render;
+    };
+    dots.forEach((d) => {
+      d.addEventListener('mouseenter', () => show(d));
+      d.addEventListener('focus', () => show(d));
+    });
+  });
+</script>

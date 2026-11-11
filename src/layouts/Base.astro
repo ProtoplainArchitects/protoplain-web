@@ -66,7 +66,7 @@ const path = Astro.url.pathname;
       <slot />
     </main>
     <footer class="site-footer">
-      <span>© {new Date().getFullYear()} {lang === 'en' ? 'ProtoPlain Architects' : '初樸建築師事務所'}</span>
+      <p class="foot">© {new Date().getFullYear()}<span>{lang === 'en' ? 'ProtoPlain Architects' : '初樸建築師事務所'}</span><span>{lang === 'en' ? 'ProtoPlain Tectonic Construction Engineering Co., Ltd.' : '初樸自然構築工程有限公司'}</span></p>
     </footer>
     <script>
       // 有 data-reveal 的區塊第一次進入畫面時浮現；沒有 JS 時維持原樣直接顯示
