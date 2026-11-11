@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
-import { awards, awardsIntro } from '../data/awards';
+import { awardsIntro } from '../data/awards';
+import { sortedAwards } from '../lib/awards';
 import { heroOf } from '../lib/photos';
 import { getWorks, getEnglishIds, workUrl, type Lang } from '../lib/works';
 
@@ -8,6 +9,7 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 
 // 只連結正式建置裡存在的作品頁（draft 不連）；英文版另需有英文頁
+const awards = await sortedAwards();
 const pub = new Map((await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, w]));
 const published = new Set(pub.keys());
 // 有公開作品頁的才放代表照；draft 作品只列名稱
@@ -20,8 +22,8 @@ const hrefFor = (slug: string | null) => {
 ---
 <p class="lead">{awardsIntro[lang]}</p>
 <div class="awards">
-  {/* 有公開作品頁與代表照的排在前面，其餘依原順序接在後面 */}
-  {[...awards].sort((a, b) => Number(!heroFor(a.slug)) - Number(!heroFor(b.slug))).map((g) => {
+  {/* 依最新一項獎的年份，新到舊 */}
+  {awards.map((g) => {
     const href = hrefFor(g.slug);
     const hero = heroFor(g.slug);
     const name = lang === 'en' ? g.en : g.zh;

@@ -1,7 +1,7 @@
 ---
 // 首頁「獲獎」：已公開、有作品頁的得獎作品，一張代表照＋作品名＋最近一項獎。不寫獎項數量。
 import { Image } from 'astro:assets';
-import { awards } from '../data/awards';
+import { sortedAwards } from '../lib/awards';
 import { heroOf } from '../lib/photos';
 import { getEnglishIds, getWorks, workUrl, type Lang } from '../lib/works';
 
@@ -10,7 +10,7 @@ const { lang, limit = 4 } = Astro.props;
 const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
 const works = new Map((await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, w]));
 const enIds = await getEnglishIds();
-const items = awards
+const items = (await sortedAwards())
   .filter((g) => g.slug && works.has(g.slug))
   .map((g) => {
     const w = works.get(g.slug!)!;

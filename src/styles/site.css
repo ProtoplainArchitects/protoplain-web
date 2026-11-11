@@ -71,7 +71,8 @@ nav a.lang {
 }
 .tile a { color: var(--pp-ink); display: block; }
 .tile a:hover { text-decoration: none; }
-.tile-img { aspect-ratio: 4 / 3; background: var(--pp-bg-card-sub); overflow: hidden; border-radius: var(--pp-radius-control); }
+.tile-tag { position: absolute; left: var(--pp-space-xs); bottom: var(--pp-space-xs); padding: 1px 6px; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); background: var(--pp-bg-card); border-radius: var(--pp-radius-control); }
+.tile-img { position: relative; aspect-ratio: 4 / 3; background: var(--pp-bg-card-sub); overflow: hidden; border-radius: var(--pp-radius-control); }
 .tile-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.2s; }
 .tile a:hover .tile-img img { opacity: 0.88; }
 .tile-meta { display: flex; justify-content: space-between; gap: var(--pp-space-sm); padding-top: var(--pp-space-xs); }

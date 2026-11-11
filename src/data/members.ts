@@ -77,6 +77,8 @@ export const contact = {
   addressZh: '臺中市豐原區信義街155號5樓',
   addressEn: '5F., No. 155, Xinyi St., Fengyuan Dist., Taichung City, Taiwan',
   instagram: { href: 'https://www.instagram.com/pparchitects_tw/', label: '@pparchitects_tw' },
+  // Facebook 粉絲專頁：取得正確網址前不顯示（填 { href, label }）
+  facebook: null as { href: string; label: string } | null,
   // 舊站表單連到 Google 表單的編輯網址，公開填寫網址回 404；取得正確網址前不顯示按鈕
   formUrl: null as string | null,
   // 聯繫頁配圖：取作品 photos/ 裡的一張（之後有事務所外觀照可換）

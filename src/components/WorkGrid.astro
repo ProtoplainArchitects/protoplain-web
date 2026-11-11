@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import { axisLabel, kindLabel, workUrl, type Lang, type Work } from '../lib/works';
+import { heroOf } from '../lib/photos';
 
 interface Props { works: Work[]; lang: Lang; filter?: boolean; enIds?: Set<string> }
 const { works, lang, filter = false, enIds } = Astro.props;
@@ -22,8 +23,12 @@ const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
       <li class="tile" data-axis={w.data.axis ?? ''} data-kind={w.data.kind}>
         <a href={href}>
           <div class="tile-img">
-            {w.data.cover && (
-              <Image src={w.data.cover} alt="" widths={[480, 800]} sizes="(max-width: 640px) 100vw, 33vw" format="webp" />
+            {/* 用作品的代表照（完工第一張，長邊 2500px），不用舊站匯入的 1260px cover.jpg；只有算圖時標「情境模擬」 */}
+            {heroOf(w) && (
+              <>
+                <Image src={heroOf(w)!.src} alt="" widths={[480, 800, 1200]} sizes="(max-width: 640px) 100vw, 33vw" format="webp" />
+                {heroOf(w)!.render && <span class="tile-tag">{t('情境模擬', 'Rendering')}</span>}
+              </>
             )}
           </div>
           <div class="tile-meta">

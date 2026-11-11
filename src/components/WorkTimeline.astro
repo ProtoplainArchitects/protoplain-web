@@ -1,8 +1,10 @@
 ---
 // 作品頁的共用時間軸：一條年份線，人文構築排在線上、自然構築排在線下，未分軸的作品是線上的小方點。
-// 每一點是一件作品，外圈是得獎作品。滑過或聚焦時左側預覽換成那件作品的代表照，點下去進作品頁。不寫件數。
+// 每一點是一件作品，外圈是得獎作品。右側台灣簡圖標出同一批作品的位置，滑過時間軸或地圖上的點，兩邊同時標示，
+// 左側預覽換成那件作品的代表照，點下去進作品頁。不寫件數。
 import { getImage } from 'astro:assets';
 import { awards } from '../data/awards';
+import { places, taiwanOutline } from '../data/places';
 import { heroOf } from '../lib/photos';
 import { workUrl, type Lang, type Work } from '../lib/works';
 
@@ -32,6 +34,22 @@ const years: number[] = [];
 for (let y = Math.min(...list.map((x) => x.year)); y <= Math.max(...list.map((x) => x.year)); y++) years.push(y);
 const at = (y: number, axis: string | null) => list.filter((x) => x.year === y && x.axis === axis);
 const first = list[0];
+
+// 簡圖投影：經度乘上 cos(23.6°) 修正東西向比例，1 度 ≈ 100 單位
+const px = ([lat, lng]: [number, number]) => [((lng - 119.95) * 91.6).toFixed(1), ((25.4 - lat) * 100).toFixed(1)].map(Number);
+const outline = taiwanOutline.map((p) => px(p).join(',')).join(' ');
+// 同一地點有多件作品時，沿小圓周錯開，避免完全疊在一起
+const seen = new Map<string, number>();
+const pins = list
+  .filter((x) => places[x.id])
+  .map((x) => {
+    const key = places[x.id].join(',');
+    const k = seen.get(key) ?? 0;
+    seen.set(key, k + 1);
+    const [cx, cy] = px(places[x.id]);
+    const a = k * 2.4;
+    return { ...x, cx: cx + (k ? Math.cos(a) * 3.2 * Math.sqrt(k) : 0), cy: cy + (k ? Math.sin(a) * 3.2 * Math.sqrt(k) : 0) };
+  });
 const axisName = (a: string | null) => (a === '人文構築' ? t('人文構築', 'Artificial') : a === '自然構築' ? t('自然構築', 'Nature') : t('未分軸', 'Unassigned'));
 ---
 <section class="tl" aria-label={t('作品時間軸', 'Timeline of works')} data-reveal>
@@ -53,13 +71,13 @@ const axisName = (a: string | null) => (a === '人文構築' ? t('人文構築',
         {years.map((y) => (
           <li class="tl-year">
             <div class="tl-up">
-              {at(y, '人文構築').map((x) => <a class:list={['tl-dot', x.award && 'is-award']} href={x.href} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
+              {at(y, '人文構築').map((x) => <a class:list={['tl-dot', x.award && 'is-award']} href={x.href} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
             </div>
             <div class="tl-mid">
-              {at(y, null).map((x) => <a class:list={['tl-dot', 'is-free', x.award && 'is-award']} href={x.href} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
+              {at(y, null).map((x) => <a class:list={['tl-dot', 'is-free', x.award && 'is-award']} href={x.href} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
             </div>
             <div class="tl-down">
-              {at(y, '自然構築').map((x) => <a class:list={['tl-dot', x.award && 'is-award']} href={x.href} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
+              {at(y, '自然構築').map((x) => <a class:list={['tl-dot', x.award && 'is-award']} href={x.href} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''}>{x.title}</a>)}
             </div>
             <span class="pp-data tl-y">{y}</span>
           </li>
@@ -72,10 +90,24 @@ const axisName = (a: string | null) => (a === '人文構築' ? t('人文構築',
       <span><i class="tl-key is-free"></i>{t('未分軸', 'Unassigned')}</span>
     </p>
   </div>
+
+  <figure class="tl-map" aria-label={t('作品位置簡圖', 'Map of works')}>
+    <svg viewBox="0 0 192 360" role="img">
+      <title>{t('台灣作品位置簡圖', 'Works across Taiwan')}</title>
+      <polygon class="tl-land" points={outline} />
+      {pins.map((x) => (
+        <a href={x.href} class:list={['tl-pin', x.award && 'is-award']} data-id={x.id} data-img={x.img} data-title={x.title} data-year={x.year} data-axis={axisName(x.axis)} data-render={x.render ? '1' : ''} aria-label={`${x.title} ${x.year}`}>
+          {x.award && <circle class="tl-pin-ring" cx={x.cx} cy={x.cy} r="5" />}
+          <circle class="tl-pin-dot" cx={x.cx} cy={x.cy} r={x.axis ? 2.6 : 2} />
+        </a>
+      ))}
+    </svg>
+    <figcaption>{t('位置為約略標示', 'Approximate locations')}</figcaption>
+  </figure>
 </section>
 
 <style>
-  .tl { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2.4fr); gap: var(--pp-space-lg); align-items: end; margin-bottom: calc(var(--pp-space-xl) * 1.5); }
+  .tl { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2.4fr) 150px; gap: var(--pp-space-lg); align-items: end; margin-bottom: calc(var(--pp-space-xl) * 1.5); }
   .tl-preview { margin: 0; }
   .tl-pimg { aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
   .tl-pimg img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.25s ease; }
@@ -110,24 +142,39 @@ const axisName = (a: string | null) => (a === '人文構築' ? t('人文構築',
   .tl-key.is-award { background: none; border: var(--pp-border-width) solid var(--pp-ink); width: 12px; height: 12px; }
   .tl-key.is-free { border-radius: 1px; width: 6px; height: 6px; background: var(--pp-line-strong); }
 
+  .tl-map { margin: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: flex-end; }
+  .tl-map svg { width: 100%; height: auto; max-height: 300px; display: block; overflow: visible; }
+  .tl-land { fill: var(--pp-bg-card-sub); stroke: var(--pp-line-strong); stroke-width: 0.5; stroke-linejoin: round; }
+  .tl-pin-dot { fill: var(--pp-ink-sub); transition: fill 0.2s; }
+  .tl-pin-ring { fill: none; stroke: var(--pp-ink); stroke-width: 0.5; }
+  .tl-pin:hover .tl-pin-dot, .tl-pin:focus-visible .tl-pin-dot, .tl-pin.is-on .tl-pin-dot { fill: var(--pp-ink); }
+  .tl-pin.is-on .tl-pin-dot { r: 4px; }
+  .tl-map figcaption { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); padding-top: var(--pp-space-xs); }
+
+  @media (max-width: 1100px) {
+    .tl { grid-template-columns: minmax(200px, 1fr) minmax(0, 2fr) 120px; }
+  }
   @media (max-width: 760px) {
-    .tl { grid-template-columns: 1fr; }
+    .tl { grid-template-columns: 1fr 120px; }
+    .tl-preview { grid-column: 1 / -1; }
+    .tl-chart { grid-column: 1 / 2; }
     .tl-preview { max-width: 360px; }
   }
   @media (prefers-reduced-motion: reduce) { .tl-dot, .tl-pimg img { transition: none; } }
 </style>
 
 <script>
-  // 滑過或聚焦作品點時，左側預覽換成那件作品；離開時停在最後看的那件
+  // 滑過或聚焦時間軸或地圖上的點時，左側預覽換成那件作品；離開時停在最後看的那件
   document.querySelectorAll<HTMLElement>('.tl').forEach((tl) => {
     const img = tl.querySelector<HTMLImageElement>('.tl-pimg img')!;
     const title = tl.querySelector<HTMLElement>('.tl-ptitle')!;
     const year = tl.querySelector<HTMLElement>('.tl-pyear')!;
     const axis = tl.querySelector<HTMLElement>('.tl-paxis')!;
     const render = tl.querySelector<HTMLElement>('.tl-prender')!;
-    const dots = Array.from(tl.querySelectorAll<HTMLAnchorElement>('.tl-dot'));
-    const show = (d: HTMLAnchorElement) => {
-      dots.forEach((x) => x.classList.toggle('is-on', x === d));
+    const dots = Array.from(tl.querySelectorAll<HTMLAnchorElement | SVGAElement>('.tl-dot, .tl-pin'));
+    const show = (d: HTMLAnchorElement | SVGAElement) => {
+      // 時間軸上的點和地圖上的點用同一個作品 id 對應，兩邊一起標示
+      dots.forEach((x) => x.classList.toggle('is-on', x.dataset.id === d.dataset.id));
       if (d.dataset.img && img.getAttribute('src') !== d.dataset.img) img.src = d.dataset.img;
       title.textContent = d.dataset.title ?? '';
       year.textContent = d.dataset.year ?? '';

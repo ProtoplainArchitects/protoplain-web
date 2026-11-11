@@ -48,7 +48,7 @@ const cols = (['人文構築', '自然構築'] as const).map((axis) => ({
 <style>
   /* 第一個畫面：頁首約 97px＋間距、宣言一行、圖說一行，其餘全給照片 */
   .hs { --hs-offset: 250px; margin-top: calc(var(--pp-space-xl) * -0.5); }
-  .hs-line { font-size: var(--pp-fs-h2); letter-spacing: 0.08em; margin: 0 0 var(--pp-space-md); }
+  .hs-line { font-size: var(--pp-fs-h2); letter-spacing: 0.12em; color: var(--pp-ink); margin: 0 0 var(--pp-space-md); }
   .hs-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pp-space-xs); }
   .hs-frame {
     position: relative; height: calc(100svh - var(--hs-offset)); min-height: 320px; max-height: 960px;
@@ -59,13 +59,14 @@ const cols = (['人文構築', '自然構築'] as const).map((axis) => ({
   .hs-slide img { width: 100%; height: 100%; object-fit: cover; display: block; transform: scale(1.04); transition: transform 8s linear; }
   .hs-slide.is-on img { transform: scale(1); }
 
-  .hs-meta { display: flex; align-items: baseline; gap: var(--pp-space-md); padding-top: var(--pp-space-xs); font-size: var(--pp-fs-caption); }
+  /* 圖說一列：軸名（墨色）靠左，作品名與年份（淡灰）緊接在後，同一條基線；不靠右，避免和隔壁欄的軸名擠在中縫 */
+  .hs-meta { display: flex; align-items: center; gap: var(--pp-space-md); height: 20px; margin-top: var(--pp-space-xs); font-size: var(--pp-fs-caption); line-height: 20px; }
   .hs-axis { color: var(--pp-ink); white-space: nowrap; }
-  .hs-axis::after { content: ' →'; display: inline-block; transition: transform 0.3s ease; }
+  .hs-axis::after { content: '→'; display: inline-block; margin-left: 6px; transition: transform 0.3s ease; }
   .hs-axis:hover { text-decoration: none; }
   .hs-axis:hover::after { transform: translateX(4px); }
-  .hs-cap { position: relative; flex: 1; height: 20px; }
-  .hs-cap-item { position: absolute; inset: 0; margin: 0; display: flex; justify-content: flex-end; gap: var(--pp-space-sm); color: var(--pp-ink-sub); opacity: 0; transition: opacity 0.6s ease; white-space: nowrap; overflow: hidden; }
+  .hs-cap { position: relative; flex: 1; min-width: 0; height: 20px; }
+  .hs-cap-item { position: absolute; inset: 0; margin: 0; display: flex; gap: var(--pp-space-xs); color: var(--pp-ink-hint); opacity: 0; transition: opacity 0.6s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-cap-item.is-on { opacity: 1; }
 
   @media (max-width: 760px) {

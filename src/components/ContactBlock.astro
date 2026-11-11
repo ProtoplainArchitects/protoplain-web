@@ -34,6 +34,12 @@ const map = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponen
         <dt>Instagram</dt>
         <dd><a href={contact.instagram.href} rel="noopener">{contact.instagram.label}</a></dd>
       </div>
+      {contact.facebook && (
+        <div>
+          <dt>Facebook</dt>
+          <dd><a href={contact.facebook.href} rel="noopener">{contact.facebook.label}</a></dd>
+        </div>
+      )}
     </dl>
     {contact.formUrl && (
       <a class="pp-btn contact-form" href={contact.formUrl} rel="noopener">{en ? 'Get in touch' : '填寫聯繫表單'}</a>
