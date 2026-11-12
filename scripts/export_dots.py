@@ -2,6 +2,10 @@
 
 用法：
     python3 -I scripts/export_dots.py <elevation-data.json> <photo-points.json> [--check]
+    python3 -I scripts/export_dots.py <elevation-data.json> --keep-image [--check]
+
+--keep-image：沿用 src/data/dots.json 現有的照片點（關鍵點與背景點），只更新專案資料（重量、年份、作品對照）。
+pp-archive 統計頁自 2026-10-30 起改用 13 萬點的杉林照，網站維持 2400 點的屋簷照，更新資料時用這個選項。
 
 只輸出白名單欄位：點座標與色調、重量（取到 0.1）、年份、對上網站作品時的 slug。
 專案名稱、代碼、業主類別、得獎明細、金額都不寫出。--check 只印對照結果（代碼與 slug），不寫檔。
@@ -54,7 +58,11 @@ def main():
     args = [a for a in sys.argv[1:] if not a.startswith('--')]
     check = '--check' in sys.argv
     projects = json.loads(Path(args[0]).read_text(encoding='utf-8'))
-    photo = json.loads(Path(args[1]).read_text(encoding='utf-8'))
+    if '--keep-image' in sys.argv:
+        old = json.loads(OUT.read_text(encoding='utf-8'))
+        photo = {'aspect': old['aspect'], 'air': old['air'], 'key': [[d['u'], d['v'], d['t']] for d in old['dots']]}
+    else:
+        photo = json.loads(Path(args[1]).read_text(encoding='utf-8'))
 
     # 一個 slug 只給一個專案：同名多案時取重量最高者。
     # 一個專案對到多件網站作品（例：八仙山一案含竹泊、沐竹軒、迎竹軒）時，點連到 SITE 中排在前面的那件。
