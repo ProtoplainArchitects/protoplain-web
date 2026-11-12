@@ -1,6 +1,6 @@
 ---
 title: "Cremation Ground"
-subtitle: "A place to return to the dust and return to truth"
+subtitle: "Skylight on mirrored stone"
 ---
 
 彰化縣 生命園區火化場

@@ -1,57 +1,105 @@
 ---
-// 首頁「獲獎」：已公開、有作品頁的得獎作品，一張代表照＋作品名＋最近一項獎。不寫獎項數量。
+// 首頁「獲獎」：沿首頁兩軸分成兩欄（左人文構築、右自然構築），各欄依最近一項獎的年份由新到舊往下排。
+// 每件作品列出全部獎項。已公開的作品附代表照與元素句、可點進作品頁；draft 作品只列名稱與獎項，不放照片、不連結。
+// 不屬於任何作品的獎（事務所）放在兩欄下方。不寫獎項數量。
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import { sortedAwards } from '../lib/awards';
 import { heroOf } from '../lib/photos';
-import { getEnglishIds, getWorks, workUrl, type Lang } from '../lib/works';
+import { axisLabel, getEnglishIds, getWorks, workUrl, type Lang } from '../lib/works';
 
-interface Props { lang: Lang; limit?: number }
-const { lang, limit = 4 } = Astro.props;
-const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
-const works = new Map((await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, w]));
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const en = lang === 'en';
+const t = (zh: string, en_: string) => (en ? en_ : zh);
+
+const published = new Map((await getWorks()).filter((w) => !w.data.draft).map((w) => [w.id, w]));
+// 軸線只讀欄位，不讀內容；draft 作品的軸線也要用來分欄
+const axisOf = new Map((await getCollection('works')).map((w) => [w.id, w.data.axis]));
 const enIds = await getEnglishIds();
-const items = (await sortedAwards())
-  .filter((g) => g.slug && works.has(g.slug))
-  .map((g) => {
-    const w = works.get(g.slug!)!;
-    return {
-      name: lang === 'en' ? g.en : g.zh,
-      award: lang === 'en' ? g.items[0].en : g.items[0].zh,
-      href: lang === 'en' && !enIds.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang),
-      hero: heroOf(w),
-    };
-  })
-  .filter((x) => x.hero)
-  .slice(0, limit);
+const enSub = new Map((await getCollection('worksEn')).map((e) => [e.id, e.data.subtitle]));
+
+const groups = (await sortedAwards()).map((g) => {
+  const w = g.slug ? published.get(g.slug) : undefined;
+  return {
+    axis: g.slug ? axisOf.get(g.slug) ?? null : null,
+    name: en ? g.en : g.zh,
+    awards: g.items.map((a) => (en ? a.en : a.zh)),
+    href: w ? (en && !enIds.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang)) : null,
+    element: w ? (en ? enSub.get(w.id) : w.data.subtitle) ?? null : null,
+    hero: w ? heroOf(w) : null,
+  };
+});
+const cols = (['人文構築', '自然構築'] as const).map((axis) => ({ axis, label: axisLabel[axis][lang], items: groups.filter((g) => g.axis === axis) }));
+const practice = groups.filter((g) => !g.axis);
 ---
 <section class="af" aria-labelledby="af-title">
   <div class="section-head" data-reveal>
     <h2 id="af-title">{t('獲獎', 'Awards')}</h2>
-    <a href={lang === 'en' ? '/en/awards/' : '/awards/'}>{t('全部獲獎 →', 'All awards →')}</a>
+    <a href={en ? '/en/awards/' : '/awards/'}>{t('全部獲獎 →', 'All awards →')}</a>
   </div>
-  <ul class="af-list">
-    {items.map((x) => (
-      <li data-reveal>
-        <a href={x.href}>
-          <div class="af-img"><Image src={x.hero!.src} alt="" widths={[480, 800]} sizes="(max-width: 760px) 50vw, 25vw" format="webp" />{x.hero!.render && <span class="af-tag">{t('情境模擬', 'Rendering')}</span>}</div>
-          <p class="af-name">{x.name}</p>
-          <p class="af-award">{x.award}</p>
-        </a>
-      </li>
+  <div class="af-cols">
+    {cols.map((c) => (
+      <div class="af-col">
+        <p class="af-axis">{c.label}</p>
+        <ul class="af-list">
+          {c.items.map((g) => {
+            const Tag = g.href ? 'a' : 'div';
+            return (
+              <li data-reveal>
+                <Tag class="af-row" href={g.href ?? undefined}>
+                  <div class="af-img">
+                    {g.hero && <Image src={g.hero.src} alt="" widths={[200, 400]} sizes="120px" format="webp" />}
+                  </div>
+                  <div class="af-text">
+                    <p class="af-name">{g.name}{g.element && <span class="af-el">{g.element}</span>}</p>
+                    <ul class="af-awards">
+                      {g.awards.map((a) => <li>{a}</li>)}
+                    </ul>
+                  </div>
+                </Tag>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     ))}
-  </ul>
+  </div>
+  {practice.map((g) => (
+    <div class="af-practice" data-reveal>
+      <p class="af-name">{g.name}</p>
+      <ul class="af-awards">{g.awards.map((a) => <li>{a}</li>)}</ul>
+    </div>
+  ))}
 </section>
 
 <style>
-  .af-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--pp-space-md) var(--pp-space-xs); }
-  .af-list a { display: block; color: var(--pp-ink); }
-  .af-list a:hover { text-decoration: none; }
-  .af-tag { position: absolute; left: var(--pp-space-xs); bottom: var(--pp-space-xs); padding: 1px 6px; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); background: var(--pp-bg-card); border-radius: var(--pp-radius-control); }
-  .af-img { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  /* 兩欄對齊首頁上方兩張滿版照的欄寬與間距 */
+  .af-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--pp-space-xs); }
+  .af-col { min-width: 0; }
+  .af-axis { margin: 0 0 var(--pp-space-xs); font-size: var(--pp-fs-caption); color: var(--pp-ink); }
+  .af-list { list-style: none; margin: 0; padding: 0; border-top: var(--pp-border-width) solid var(--pp-line); }
+  .af-list > li { border-bottom: var(--pp-border-width) solid var(--pp-line); }
+  .af-row {
+    display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--pp-space-sm);
+    padding: var(--pp-space-sm) var(--pp-space-sm) var(--pp-space-sm) 0; color: var(--pp-ink);
+  }
+  a.af-row:hover { text-decoration: none; }
+  /* 沒有照片的列（draft）留同寬空白，文字仍對齊 */
+  .af-img { aspect-ratio: 4 / 5; overflow: hidden; border-radius: var(--pp-radius-control); }
+  .af-img:has(img) { background: var(--pp-bg-card-sub); }
+  .af-img:not(:has(img)) { aspect-ratio: auto; }
   .af-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
-  .af-list a:hover .af-img img { transform: scale(1.02); }
-  .af-name { margin: var(--pp-space-xs) 0 2px; }
-  .af-award { margin: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
-  @media (max-width: 760px) { .af-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  a.af-row:hover .af-img img { transform: scale(1.03); }
+  .af-text { min-width: 0; }
+  .af-name { margin: 0 0 var(--pp-space-xs); display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 var(--pp-space-xs); }
+  .af-el { font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); }
+  .af-awards { list-style: none; margin: 0; padding: 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); line-height: 1.7; }
+  .af-practice { margin-top: var(--pp-space-md); }
+
+  @media (max-width: 760px) {
+    .af-cols { grid-template-columns: 1fr; gap: var(--pp-space-lg); }
+    .af-row { grid-template-columns: 72px minmax(0, 1fr); }
+  }
   @media (prefers-reduced-motion: reduce) { .af-img img { transition: none; } }
 </style>

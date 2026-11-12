@@ -1,7 +1,7 @@
 ---
 title: "鐵麓山集"
 titleEn: "Jiji Railway Foothills Market"
-subtitle: "集集山腳下的木構鐵道市集"
+subtitle: "集集山巒的稜線"
 year: 2023
 kind: work
 axis: "人文構築"

@@ -1,7 +1,7 @@
 ---
 title: "生命園區火化場"
 titleEn: "Cremation Ground"
-subtitle: "歸塵歸真之所"
+subtitle: "鏡石上的天光"
 year: 2025
 kind: work
 axis: "人文構築"

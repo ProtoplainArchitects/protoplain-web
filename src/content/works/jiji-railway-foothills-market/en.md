@@ -1,6 +1,6 @@
 ---
 title: "Jiji Railway Foothills Market"
-subtitle: null
+subtitle: "The ridgeline of the Jiji hills"
 ---
 
 集集山腳下的木構鐵道市集。鐵麓山集

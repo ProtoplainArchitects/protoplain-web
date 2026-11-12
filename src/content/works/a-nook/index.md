@@ -1,7 +1,7 @@
 ---
 title: "一隅"
 titleEn: "A Nook"
-subtitle: "商用空間的跨思維演繹"
+subtitle: "深陽台的樹影"
 year: 2017
 kind: work
 axis: "人文構築"

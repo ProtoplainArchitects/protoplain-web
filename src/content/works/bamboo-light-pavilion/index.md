@@ -1,7 +1,7 @@
 ---
 title: "竹輕亭｜簇樂"
 titleEn: "Bamboo Light Pavilion"
-subtitle: "常民竹小屋原型，志工動手就能組起來的竹構棚架"
+subtitle: "糖廠空地的簷影"
 year: 2026
 kind: work
 axis: "自然構築"
