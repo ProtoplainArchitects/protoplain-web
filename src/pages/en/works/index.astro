@@ -1,6 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
-import WorkTimeline from '../../../components/WorkTimeline.astro';
+import WorkParticles from '../../../components/WorkParticles.astro';
 import WorkGrid from '../../../components/WorkGrid.astro';
 import { getWorks, getEnglishIds } from '../../../lib/works';
 
@@ -10,7 +10,7 @@ const works = all.filter((w) => enIds.has(w.id));
 ---
 <Base lang="en" title="Works" altHref="/works/">
   <h1 class="page-title">Works</h1>
-  <!-- 時間軸放全部作品；沒有英文頁的作品連到中文頁 -->
-  <WorkTimeline works={all} lang="en" enIds={enIds} />
   <WorkGrid works={works} lang="en" enIds={enIds} filter />
+  <!-- 作品分布放全部作品；沒有英文頁的作品連到中文頁 -->
+  <WorkParticles works={all} lang="en" enIds={enIds} />
 </Base>

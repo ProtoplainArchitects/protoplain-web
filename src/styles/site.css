@@ -78,6 +78,7 @@ nav a.lang {
 .tile-meta { display: flex; justify-content: space-between; gap: var(--pp-space-sm); padding-top: var(--pp-space-xs); }
 .tile-title { font-weight: var(--pp-fw-medium); }
 .tile-meta .pp-data { color: var(--pp-ink-sub); }
+.tile-sub { margin: 2px 0 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); }
 
 .draft-flag {
   display: inline-block; margin-top: 4px; font-size: var(--pp-fs-caption);
@@ -170,7 +171,7 @@ nav a.lang {
 .home-intro p { font-size: var(--pp-fs-h2); line-height: 2.1; letter-spacing: 0.08em; color: var(--pp-ink); margin: 0 0 var(--pp-space-lg); }
 .home-intro p:last-child { margin-bottom: 0; }
 .home-more { font-size: var(--pp-fs-caption); }
-.works-dots { margin-top: calc(var(--pp-space-xl) * 2); }
+.works-dots { margin-top: calc(var(--pp-space-xl) * 1.5); }
 .home-more a { color: var(--pp-ink); }
 
 /* 輕微動態：換頁淡入淡出、區塊第一次進畫面時浮現。系統設定減少動態時全部關閉 */

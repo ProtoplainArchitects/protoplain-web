@@ -5,7 +5,7 @@ subtitle: "歸塵歸真之所"
 year: 2025
 kind: work
 axis: "人文構築"
-location: null
+location: "彰化縣芳苑鄉"
 cover: ./cover.jpg
 draft: false
 review: []

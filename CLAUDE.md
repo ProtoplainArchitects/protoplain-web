@@ -25,7 +25,7 @@ src/content/works/<slug>/   一件作品一個資料夾
   manual/                   組裝說明書逐頁圖（同上）
 src/pages/                  中文在根目錄，英文在 /en/
 src/components/             HomeStage（首頁兩軸滿版照）、AwardsFeature（首頁獲獎）
-                            WorkTimeline（作品頁共用時間軸）、WorkGrid（列表）、WorkDetail（作品頁）
+                            WorkGrid（列表）、WorkParticles（作品分布：時間／地點微塵）、DotField（歷年專案微塵）、WorkDetail（作品頁）
                             PhotoStrip（照片橫卷）、Lightbox（放大檢視）
                             ConstructionVideo、TectonicViewer、ManualReader（影片、模型、說明書）
 src/data/builds.ts          哪些作品有影片、模型、說明書，以及這些作品每張照片的說明與分組

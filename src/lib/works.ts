@@ -32,3 +32,10 @@ export const kindLabel = {
 export function workUrl(id: string, lang: Lang) {
   return lang === 'en' ? `/en/works/${id}/` : `/works/${id}/`;
 }
+
+/** 地點只取到縣市與鄉鎮區（不顯示門牌）；格式不符時取前 8 字 */
+export function shortPlace(location: string | null): string {
+  if (!location) return '';
+  const m = location.match(/^(.{2,3}?[市縣])?(.{1,3}?[區鄉鎮市])/);
+  return m ? m[0] : location.slice(0, 8);
+}

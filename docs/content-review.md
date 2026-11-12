@@ -52,6 +52,7 @@
 | 小港佘宅 | `she-house-in-xiaogang` | 封面 1519px（舊站列表裁切版），找不到完整版 |
 | 大明高中校舍 | `ta-ming-shs` | 封面 1420px（算圖） |
 | 生命園區火化場 | `crematorium-in-changhua` | 全案只有 1 張算圖，1519px |
+| 臺電服務站 | `taipower-yuchi-service-office` | 只剩 1 張算圖，1519px（舊站這頁混入一張員林戶地政的算圖，2026-11-12 已移除） |
 | 第三屆島嶼構竹 | `tectonics-of-the-island-2023` | 封面 1456px（現場照） |
 | 第四屆島嶼構竹 | `tectonics-of-the-island-2025` | 封面 1566px（現場照） |
 

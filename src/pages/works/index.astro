@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import WorkTimeline from '../../components/WorkTimeline.astro';
+import WorkParticles from '../../components/WorkParticles.astro';
 import WorkGrid from '../../components/WorkGrid.astro';
 import DotField from '../../components/DotField.astro';
 import { getWorks } from '../../lib/works';
@@ -8,10 +8,10 @@ import { getWorks } from '../../lib/works';
 const works = await getWorks();
 ---
 <Base lang="zh" title="作品" altHref="/en/works/">
-  <!-- 作品頁｜上：人文與自然共用的時間軸；中：全部作品與篩選；下：歷年專案微塵 -->
+  <!-- 作品頁｜上：全部作品與篩選；下：作品分布（時間／地點，微塵）與歷年專案微塵 -->
   <h1 class="page-title">作品</h1>
-  <WorkTimeline works={works} lang="zh" />
   <WorkGrid works={works} lang="zh" filter />
+  <WorkParticles works={works} lang="zh" />
   <div class="works-dots" data-reveal>
     <DotField />
   </div>
