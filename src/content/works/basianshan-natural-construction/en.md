@@ -1,6 +1,6 @@
 ---
 title: "Basianshan National Forest Recreation Area"
-subtitle: null
+subtitle: "Forest shade in the Shiwen Valley"
 ---
 
 八仙山國家森林遊樂園區　　自然構築計畫
@@ -11,16 +11,16 @@ You can cast your heart into a mountain, and the mountain will preserve it, fold
 
 Located within the Baxianshan National Forest Recreation Area in Heping District, Taichung City, the site, which began as the Baxianshan Forest Farm in 1914 and ceased logging in 1963, transforming into a recreational forest park, is approaching its 110th anniversary.
 
-This project aims to reinterpret the characteristics of this once important forest farm, utilizing domestically produced bamboo to integrate the aesthetic art of bamboo construction, enhance material consistency, maintain the overall unity of the mountain and forest imagery, and create a therapeutic atmosphere. It provides visitors with a multi-sensory experience and ensures a unified aesthetic and spatial orientation within the park.
+This project aims to reinterpret the characteristics of this once important forest farm, utilizing domestically produced bamboo to integrate the aesthetic art of bamboo construction, enhance material consistency, maintain the overall unity of the mountain and forest imagery, and invite people to slow down among the trees. It provides visitors with a multi-sensory experience and ensures a unified aesthetic and spatial orientation within the park.
 
 Four design sites are planned:
 
 Converted public restroom next to dormitory accommodation\
 Renovated restroom on the B1 floor of the visitor center\
-New therapeutic rest platform beside the Shiwen River\
+New rest platform beside the Shiwen River\
 New restroom beside the Shiwen River
 
-These sites are located at the entrance of the overall forest park, a popular area for visitors. In addition to improving service facilities and the landscape, the project utilizes a connecting trail system and the designated site layout to provide visitors with a more complete forest therapeutic experience.
+These sites are located at the entrance of the overall forest park, a popular area for visitors. In addition to improving service facilities and the landscape, the project utilizes a connecting trail system and the designated site layout so that visitors can walk through the forest from shade to stream to bamboo structure as one continuous experience.
 
 ＭＯＲＥ⇢\
 [農業部林業與自然保育署｜八仙山國家森林遊樂區打造竹構藝術公廁 獲建築園冶獎、評審特別獎、零碳永續特別獎三獎肯定](https://www.forest.gov.tw/0004547/0077008)\
