@@ -1,6 +1,6 @@
 ---
 title: "Bamboo Bending"
-subtitle: "Bamboo New Field Exhibition"
+subtitle: "Ripples by the old log pond"
 ---
 
 The Reservoir of Memory

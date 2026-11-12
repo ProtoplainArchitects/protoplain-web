@@ -1,7 +1,7 @@
 ---
 title: "竹粼｜第一屆構竹林鐵"
 titleEn: "Bamboo Bending"
-subtitle: "歷史場域的水池"
+subtitle: "貯木池畔的波光"
 year: 2021
 kind: work
 axis: "人文構築"

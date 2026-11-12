@@ -1,7 +1,9 @@
 ---
 // 首頁第一個畫面：一行宣言，下面人文構築、自然構築兩張滿版照片並排，剛好填滿一個畫面，不用捲就看得到。
+// 圖說：作品名為主，後面接舊站沿用的「元素句」（subtitle，例如招霧亭的「日月潭的湖風」）與年份。
 // 每欄慢速輪播該軸已完工作品的代表照（只放實景照，不放情境模擬圖），兩欄錯開；滑過或聚焦時暫停。
 import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
 import { axisLabel, workUrl, type Lang, type Work } from '../lib/works';
 import { heroOf } from '../lib/photos';
 
@@ -10,6 +12,8 @@ const { works, lang, enIds } = Astro.props;
 const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
 const href = (w: Work) => (lang === 'en' && !enIds?.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang));
 const title = (w: Work) => (lang === 'en' ? (w.data.titleEn ?? w.data.title) : w.data.title);
+const enSub = new Map((await getCollection('worksEn')).map((e) => [e.id, e.data.subtitle]));
+const element = (w: Work) => (lang === 'en' ? enSub.get(w.id) : w.data.subtitle) ?? null;
 
 const cols = (['人文構築', '自然構築'] as const).map((axis) => ({
   axis,
@@ -36,7 +40,7 @@ const cols = (['人文構築', '自然構築'] as const).map((axis) => ({
           <a class="hs-axis" href={`${lang === 'en' ? '/en/works/' : '/works/'}?axis=${c.axis}`}>{c.label}</a>
           <div class="hs-cap">
             {c.slides.map(({ w }, i) => (
-              <p class:list={['hs-cap-item', i === 0 && 'is-on']}>{title(w)}<span class="pp-data">{w.data.year}</span></p>
+              <p class:list={['hs-cap-item', i === 0 && 'is-on']}><span class="hs-title">{title(w)}</span>{element(w) && <span class="hs-el">{element(w)}</span>}<span class="pp-data">{w.data.year}</span></p>
             ))}
           </div>
         </div>
@@ -68,6 +72,9 @@ const cols = (['人文構築', '自然構築'] as const).map((axis) => ({
   .hs-cap { position: relative; flex: 1; min-width: 0; height: 20px; }
   .hs-cap-item { position: absolute; inset: 0; margin: 0; display: flex; gap: var(--pp-space-xs); color: var(--pp-ink-hint); opacity: 0; transition: opacity 0.6s ease; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hs-cap-item.is-on { opacity: 1; }
+  .hs-title { color: var(--pp-ink-sub); }
+  .hs-el { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .hs-cap-item .pp-data { flex: none; }
 
   @media (max-width: 760px) {
     .hs-grid { grid-template-columns: 1fr; gap: var(--pp-space-md); }
