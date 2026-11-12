@@ -8,7 +8,7 @@ export const places: Record<string, [number, number]> = {
   'bamboo-light-pavilion': [23.705, 120.537], // 斗六糖廠
   'bamboo-mooring': [24.19, 121.0], // 八仙山森林遊樂區
   'basianshan-natural-construction': [24.19, 121.0],
-  'crematorium-in-changhua': [23.95, 120.57], // 彰化縣員林
+  'crematorium-in-changhua': [23.925, 120.32], // 彰化縣芳苑鄉
   'dacun-community-center': [23.99, 120.56], // 彰化縣大村鄉
   'dormitory-in-tanzi': [24.21, 120.7], // 臺中市潭子區
   'jiji-railway-foothills-market': [23.83, 120.78], // 南投縣集集鎮

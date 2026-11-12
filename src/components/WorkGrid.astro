@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import { axisLabel, kindLabel, workUrl, type Lang, type Work } from '../lib/works';
+import { axisLabel, kindLabel, shortPlace, workUrl, type Lang, type Work } from '../lib/works';
 import { heroOf } from '../lib/photos';
 
 interface Props { works: Work[]; lang: Lang; filter?: boolean; enIds?: Set<string> }
@@ -35,6 +35,11 @@ const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
             <span class="tile-title">{title}</span>
             <span class="pp-data">{w.data.year}</span>
           </div>
+          {/* 第二行：軸線或類型，加上縣市與鄉鎮（英文頁只放軸線或類型） */}
+          <p class="tile-sub">
+            {w.data.kind === 'exhibition' ? kindLabel.exhibition[lang] : w.data.axis ? axisLabel[w.data.axis][lang] : kindLabel.work[lang]}
+            {lang === 'zh' && shortPlace(w.data.location) && <> ・ {shortPlace(w.data.location)}</>}
+          </p>
           {w.data.draft && <span class="draft-flag">draft · {w.data.review.join('、')}</span>}
         </a>
       </li>

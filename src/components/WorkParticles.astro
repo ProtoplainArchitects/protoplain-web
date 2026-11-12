@@ -1,0 +1,240 @@
+---
+// 作品分布｜沿用「歷年專案微塵」的微塵語言：同一群點在「時間」與「地點」兩種排列之間流動。
+// 深色點是作品（外圈＝得獎），淡色微塵是背景：時間模式下排成年份線，地點模式下聚成台灣本島輪廓。
+// 滑過或聚焦作品點，左上角浮出代表照與名稱；點下去進作品頁。位置只到鄉鎮的約略位置。不寫件數。
+import { getImage } from 'astro:assets';
+import { awards } from '../data/awards';
+import { places, taiwanOutline } from '../data/places';
+import { heroOf } from '../lib/photos';
+import { shortPlace, workUrl, type Lang, type Work } from '../lib/works';
+
+interface Props { works: Work[]; lang: Lang; enIds?: Set<string> }
+const { works, lang, enIds } = Astro.props;
+const t = (zh: string, en: string) => (lang === 'en' ? en : zh);
+const awarded = new Set(awards.map((a) => a.slug).filter(Boolean));
+const rnd = (i: number) => ((Math.sin(i * 12.9898) * 43758.5453) % 1 + 1) % 1;
+const r1 = (n: number) => Math.round(n * 10) / 10;
+
+const list = await Promise.all(
+  works
+    .filter((w) => w.data.kind === 'work')
+    .map(async (w) => {
+      const hero = heroOf(w);
+      return {
+        id: w.id, year: w.data.year, axis: w.data.axis,
+        title: lang === 'en' ? (w.data.titleEn ?? w.data.title) : w.data.title,
+        place: lang === 'zh' ? shortPlace(w.data.location) : '',
+        href: lang === 'en' && !enIds?.has(w.id) ? workUrl(w.id, 'zh') : workUrl(w.id, lang),
+        img: hero ? (await getImage({ src: hero.src, width: 480, format: 'webp' })).src : '',
+        render: hero?.render ?? false,
+        award: awarded.has(w.id),
+      };
+    }),
+);
+
+// ── 時間排列：年份平均分布在 6%–96%，人文往上疊、自然往下疊、未分軸在線上左右錯開
+const y0 = Math.min(...list.map((x) => x.year)), y1 = Math.max(...list.map((x) => x.year));
+const years = Array.from({ length: y1 - y0 + 1 }, (_, i) => y0 + i);
+const yearX = (y: number) => 6 + ((y - y0) / Math.max(1, y1 - y0)) * 90;
+// 每疊一件往上（下）移的高度（%）：依最高的一疊縮放，最多 8.5%，不會超出舞台
+const tallest = Math.max(1, ...years.flatMap((y) => ['人文構築', '自然構築'].map((a) => list.filter((x) => x.year === y && x.axis === a).length)));
+const STEP = Math.min(8.5, 42 / tallest);
+const counter = new Map<string, number>();
+const timePos = (x: (typeof list)[number]) => {
+  const key = `${x.year}-${x.axis}`;
+  const k = counter.get(key) ?? 0;
+  counter.set(key, k + 1);
+  if (x.axis === '人文構築') return [yearX(x.year), 50 - STEP * (k + 1)];
+  if (x.axis === '自然構築') return [yearX(x.year), 50 + STEP * (k + 1)];
+  return [yearX(x.year) + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 1.6, 50];
+};
+
+// ── 地點排列：台灣簡圖投影（經度修正 cos 23.6°），本島高佔舞台 92%；手機版舞台較方，另算一組
+const proj = ([lat, lng]: [number, number]) => [(lng - 119.95) * 91.6, (25.4 - lat) * 100]; // 0–192 × 0–360
+const toStage = ([X, Y]: number[], aspect: number) => {
+  const h = 92, w = (h * 192) / 360 / aspect;
+  return [50 + (X / 192 - 0.5) * w, 4 + (Y / 360) * h];
+};
+const DESK = 2.4, MOB = 1.05;
+const seen = new Map<string, number>();
+const mapXY = (id: string) => {
+  const p = places[id];
+  if (!p) return null;
+  const key = p.join(',');
+  const k = seen.get(key) ?? 0;
+  seen.set(key, k + 1);
+  const [X, Y] = proj(p);
+  const a = k * 2.4, d = k ? 5 * Math.sqrt(k) : 0; // 同一地點錯開
+  return [X + Math.cos(a) * d, Y + Math.sin(a) * d];
+};
+
+const items = list.map((x) => {
+  const [tx, ty] = timePos(x);
+  const m = mapXY(x.id);
+  const [mx, my] = m ? toStage(m, DESK) : [tx, ty];
+  const [nx, ny] = m ? toStage(m, MOB) : [tx, ty];
+  return { ...x, onMap: !!m, style: `--tx:${r1(tx)}%;--ty:${r1(ty)}%;--mx:${r1(mx)}%;--my:${r1(my)}%;--nx:${r1(nx)}%;--ny:${r1(ny)}%` };
+});
+
+// ── 背景微塵：時間模式排成年份線（略帶抖動），地點模式落在本島輪廓內（固定種子，每次載入一樣）
+const poly = taiwanOutline.map(proj);
+const inside = (x: number, y: number) => {
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
+  }
+  return c;
+};
+const AIR = 380;
+const air: string[] = [];
+for (let i = 0, s = 0; air.length < AIR && s < 20000; s++) {
+  const X = rnd(s + 101) * 192, Y = rnd(s + 211) * 360;
+  if (!inside(X, Y)) continue;
+  const n = air.length;
+  const [mx, my] = toStage([X, Y], DESK), [nx, ny] = toStage([X, Y], MOB);
+  const tx = 3 + rnd(n + 401) * 94, ty = 50 + (rnd(n + 503) - 0.5) * 1.6;
+  const z = rnd(n + 607);
+  air.push(`--tx:${r1(tx)}%;--ty:${r1(ty)}%;--mx:${r1(mx)}%;--my:${r1(my)}%;--nx:${r1(nx)}%;--ny:${r1(ny)}%;--z:${z.toFixed(2)};--d:${(rnd(n + 709) * 0.9).toFixed(2)}s`);
+  i++;
+}
+const first = items[0];
+const axisName = (a: string | null) => (a === '人文構築' ? t('人文構築', 'Artificial') : a === '自然構築' ? t('自然構築', 'Nature') : t('未分軸', 'Unassigned'));
+---
+<section class="wp" data-mode="time" aria-labelledby="wp-title">
+  <div class="section-head">
+    <h2 id="wp-title">{t('作品分布', 'Works in time and place')}</h2>
+    <div class="wp-modes" role="group" aria-label={t('排列方式', 'Arrangement')}>
+      <button type="button" data-mode="time" aria-pressed="true">{t('時間', 'Time')}</button>
+      <button type="button" data-mode="map" aria-pressed="false">{t('地點', 'Place')}</button>
+    </div>
+  </div>
+
+  <div class="wp-stage">
+    <div class="wp-air" aria-hidden="true">{air.map((s) => <i style={s}></i>)}</div>
+
+    <div class="wp-guides" aria-hidden="true">
+      <span class="wp-lane wp-lane-up">{t('人文構築', 'Artificial')}</span>
+      <span class="wp-lane wp-lane-down">{t('自然構築', 'Nature')}</span>
+      {years.map((y) => <span class="pp-data wp-year" style={`--tx:${r1(yearX(y))}%`}>{y}</span>)}
+      <span class="wp-mapnote">{t('位置為約略標示', 'Approximate locations')}</span>
+    </div>
+
+    <ul class="wp-works">
+      {items.map((x) => (
+        <li class:list={[!x.onMap && 'no-map']} style={x.style}>
+          <a class:list={['wp-dot', x.award && 'is-award', !x.axis && 'is-free']} href={x.href}
+            data-img={x.img} data-title={x.title} data-year={x.year} data-meta={[axisName(x.axis), x.place].filter(Boolean).join(' ・ ')} data-render={x.render ? '1' : ''}
+            aria-label={`${x.title}，${x.year}`}></a>
+        </li>
+      ))}
+    </ul>
+
+    <figure class="wp-card" aria-hidden="true">
+      <div class="wp-cimg"><img src={first?.img} alt="" loading="lazy" /><span class="wp-ctag" hidden={!first?.render}>{t('情境模擬', 'Rendering')}</span></div>
+      <figcaption><span class="wp-ctitle">{first?.title}</span><span class="pp-data wp-cyear">{first?.year}</span><span class="wp-cmeta">{[axisName(first?.axis ?? null), first?.place].filter(Boolean).join(' ・ ')}</span></figcaption>
+    </figure>
+  </div>
+
+  <p class="wp-legend">
+    <span><i class="wp-key"></i>{t('作品', 'Work')}</span>
+    <span><i class="wp-key is-award"></i>{t('得獎', 'Awarded')}</span>
+    <span><i class="wp-key is-free"></i>{t('未分軸', 'Unassigned')}</span>
+  </p>
+</section>
+
+<style>
+  .wp { margin-top: calc(var(--pp-space-xl) * 2); }
+  .wp-modes { display: flex; gap: var(--pp-space-sm); }
+  .wp-modes button { font: inherit; font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); background: none; border: 0; padding: 0; cursor: pointer; transition: color 0.2s; }
+  .wp-modes button[aria-pressed='true'], .wp-modes button:hover { color: var(--pp-ink); }
+
+  /* 舞台：桌機 2.4:1，手機 1.05:1；所有點用百分比定位，切換模式時位置一起過場 */
+  .wp-stage { position: relative; width: 100%; aspect-ratio: 2.4; border-top: var(--pp-border-width) solid var(--pp-line); overflow: hidden; }
+  .wp-air, .wp-works, .wp-guides { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+  .wp-air i, .wp-works li {
+    position: absolute; left: var(--tx); top: var(--ty); transform: translate(-50%, -50%);
+    transition: left 1.6s cubic-bezier(0.6, 0, 0.2, 1) var(--d, 0s), top 1.6s cubic-bezier(0.6, 0, 0.2, 1) var(--d, 0s), opacity 0.6s;
+  }
+  .wp[data-mode='map'] .wp-air i, .wp[data-mode='map'] .wp-works li { left: var(--mx); top: var(--my); }
+  .wp-air i { width: calc(1.4px + 1.6px * var(--z)); height: calc(1.4px + 1.6px * var(--z)); border-radius: 50%; background: var(--pp-ink-hint); opacity: calc(0.25 + 0.45 * var(--z)); }
+  .wp[data-mode='map'] .wp-works li.no-map { opacity: 0; pointer-events: none; }
+  .wp-works li { --d: 0.25s; z-index: 2; }
+
+  .wp-dot { display: block; width: 11px; height: 11px; border-radius: 50%; background: var(--pp-ink-sub); position: relative; transition: background 0.2s, transform 0.2s; }
+  .wp-dot.is-free { width: 8px; height: 8px; }
+  .wp-dot.is-award::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: var(--pp-border-width) solid var(--pp-ink); }
+  .wp-dot:hover, .wp-dot:focus-visible, .wp-dot.is-on { background: var(--pp-ink); transform: scale(1.35); }
+
+  /* 導引文字：時間模式顯示軸名與年份，地點模式顯示註記 */
+  .wp-guides span { position: absolute; font-size: var(--pp-fs-caption); color: var(--pp-ink-hint); transition: opacity 0.8s; }
+  .wp-lane-up { left: 0; top: var(--pp-space-sm); }
+  .wp-lane-down { left: 0; bottom: var(--pp-space-sm); }
+  .wp-year { left: var(--tx); top: calc(50% + 10px); transform: translateX(-50%); font-size: 11px !important; }
+  .wp-mapnote { right: 0; bottom: var(--pp-space-sm); opacity: 0; }
+  .wp[data-mode='map'] .wp-lane, .wp[data-mode='map'] .wp-year { opacity: 0; }
+  .wp[data-mode='map'] .wp-mapnote { opacity: 1; }
+
+  /* 預覽：左下角浮出代表照與名稱；時間模式在左下、地點模式移到左側中段，避開點 */
+  .wp-card { position: absolute; left: 0; bottom: var(--pp-space-xl); width: 200px; margin: 0; z-index: 3; pointer-events: none; background: var(--pp-bg-card); }
+  .wp[data-mode='time'] .wp-card { opacity: 0; transition: opacity 0.3s; }
+  .wp[data-mode='time'] .wp-stage:hover .wp-card, .wp[data-mode='time'] .wp-card.is-shown { opacity: 1; }
+  .wp-cimg { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: var(--pp-radius-control); background: var(--pp-bg-card-sub); }
+  .wp-cimg img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .wp-ctag { position: absolute; left: 6px; bottom: 6px; padding: 1px 6px; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); background: var(--pp-bg-card); border-radius: var(--pp-radius-control); }
+  .wp-card figcaption { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--pp-space-xs); padding-top: var(--pp-space-xs); font-size: var(--pp-fs-caption); }
+  .wp-ctitle { color: var(--pp-ink); }
+  .wp-cyear, .wp-cmeta { color: var(--pp-ink-sub); }
+  .wp-cmeta { grid-column: 1 / -1; }
+
+  .wp-legend { display: flex; gap: var(--pp-space-md); margin: var(--pp-space-sm) 0 0; font-size: var(--pp-fs-caption); color: var(--pp-ink-sub); }
+  .wp-legend span { display: flex; align-items: center; gap: 6px; }
+  .wp-key { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pp-ink-sub); }
+  .wp-key.is-award { background: none; border: var(--pp-border-width) solid var(--pp-ink); width: 12px; height: 12px; }
+  .wp-key.is-free { width: 6px; height: 6px; }
+
+  @media (max-width: 760px) {
+    .wp-stage { aspect-ratio: 1.05; }
+    .wp[data-mode='map'] .wp-air i, .wp[data-mode='map'] .wp-works li { left: var(--nx); top: var(--ny); }
+    /* 手機：預覽卡不疊在點上，改排在舞台下方，圖左字右 */
+    .wp-stage { overflow: visible; margin-bottom: 104px; }
+    .wp-card { left: 0; right: 0; bottom: auto; top: calc(100% + var(--pp-space-sm)); width: auto; display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: var(--pp-space-sm); align-items: start; }
+    .wp[data-mode] .wp-card { opacity: 1; }
+    .wp-card figcaption { padding-top: 0; }
+    .wp-year:nth-child(odd) { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wp-air i, .wp-works li, .wp-dot, .wp-guides span { transition: none; }
+  }
+</style>
+
+<script>
+  // 切換「時間／地點」；滑過或聚焦作品點時更新預覽卡
+  document.querySelectorAll<HTMLElement>('.wp').forEach((wp) => {
+    const buttons = Array.from(wp.querySelectorAll<HTMLButtonElement>('.wp-modes button'));
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      wp.dataset.mode = b.dataset.mode;
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    }));
+    const card = wp.querySelector<HTMLElement>('.wp-card')!;
+    const img = card.querySelector<HTMLImageElement>('img')!;
+    const tag = card.querySelector<HTMLElement>('.wp-ctag')!;
+    const title = card.querySelector<HTMLElement>('.wp-ctitle')!;
+    const year = card.querySelector<HTMLElement>('.wp-cyear')!;
+    const meta = card.querySelector<HTMLElement>('.wp-cmeta')!;
+    const dots = Array.from(wp.querySelectorAll<HTMLAnchorElement>('.wp-dot'));
+    const show = (d: HTMLAnchorElement) => {
+      dots.forEach((x) => x.classList.toggle('is-on', x === d));
+      if (d.dataset.img && img.getAttribute('src') !== d.dataset.img) img.src = d.dataset.img;
+      title.textContent = d.dataset.title ?? '';
+      year.textContent = d.dataset.year ?? '';
+      meta.textContent = d.dataset.meta ?? '';
+      tag.hidden = !d.dataset.render;
+      card.classList.add('is-shown');
+    };
+    dots.forEach((d) => {
+      d.addEventListener('mouseenter', () => show(d));
+      d.addEventListener('focus', () => show(d));
+    });
+  });
+</script>
